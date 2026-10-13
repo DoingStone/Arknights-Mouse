@@ -1,0 +1,31 @@
+# ---- Runtime artifacts ----
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build intermediates
+构建/_work/
+构建/dist/
+构建/*.log
+_release/
+发布/
+
+# ---- Local state and logs (regenerated when others run it, should not enter the repo) ----
+设置.json
+运行日志.txt
+守护状态.txt
+错误日志.txt
+鼠标参数备份_*.json
+_鼠标方案备份.json
+指针/backup-applied.txt
+指针/before-install-backup.json
+
+# ---- Internal development audit (not part of the product, not suitable for publishing) ----
+_UI优化审计/
+
+# ---- Editors / system ----
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+_releasenotes.md
