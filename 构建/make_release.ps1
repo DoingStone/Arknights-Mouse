@@ -124,3 +124,11 @@ Write-Host ("  产物 : {0}" -f $zipPath)
 Write-Host ("  体积 : {0:N1} MB" -f ($zi.Length/1MB))
 Write-Host ("  SHA256: {0}" -f $hash)
 Write-Host ("  内含文件数 : {0}" -f (Get-ChildItem -LiteralPath $stage -Recurse -File).Count)
+
+# 上传到 GitHub Release 时必须用 ASCII 附件名：
+# GitHub 会把附件名里的非 ASCII 字符整段抹掉，用中文名传上去会变成 "_v1.0_portable.zip"。
+$AssetName = 'Arknights-Mouse_v{0}_portable.zip' -f $Version
+Write-Host ''
+Write-Host '  ── 传到 GitHub Releases 用这个附件名 ──'
+Write-Host ("  附件名 : {0}" -f $AssetName)
+Write-Host '  （本地文件名是中文，包内容一模一样；只有 Release 附件名必须是 ASCII）'
