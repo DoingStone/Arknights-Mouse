@@ -1,29 +1,29 @@
-# 明日方舟 · 水晶指针安装包
+# Arknights · Crystal Cursor Pack
 
-> 一套 17 个角色、三档尺寸、**保留原动画**的 Windows 鼠标指针。
-> 安装 / 切换 / 回滚全程只写 `HKCU`，**不碰任何游戏文件**。
+> A set of Windows mouse cursors: 17 characters, three tiers, **original animations preserved**.
+> Install / switch / roll back all write only to `HKCU`, and **never touch any game file**.
 
 ---
 
-## 一、这个包是什么，以及它和游戏的关系
+## 1. What this pack is, and how it relates to the game
 
-### 1.1 一个必须先讲清楚的事实
+### 1.1 One fact that has to be stated up front
 
-你给的那张「尖刺水晶指针」图，**不是明日方舟客户端内的资源**。
+The "spiked crystal cursor" image you provided is **not an asset inside the Arknights client**.
 
-我把客户端翻了个底朝天，结论是穷举性的：
+I turned the client inside out, and the conclusion is exhaustive:
 
-| 检查项 | 方法 | 结果 |
+| Check | Method | Result |
 |---|---|---|
-| 全部 16 个 `*.assets` 的 Texture2D/Sprite | 按 `pointer\|cursor\|arrow\|mouse\|hand\|click\|aim\|select` 正则扫名字 | 真正的鼠标指针美术**只有 3 张** |
-| 那 3 张是什么 | 逐一导出查看 | `cursor_small` 48×48、`cursor_medium` 64×64、`cursor_large` 96×96 —— **全是白色箭头** |
-| 指针档位/热点配置 | `sharedassets0.assets` 里 `Torappu.UI.PCCursorRuntimeConfig`（path_id=28） | 3 档，热点全部 `(8,8)`，未压缩 RGBA32 |
-| 轮廓形状匹配 | 把全游戏 1022 张 ≥20px 的贴图归一化成 48×48 轮廓，与水晶指针算 IoU | **全游戏最高只有 0.574**，且是无关 UI 件；游戏自带三张箭头只有 0.548 / 0.546 / 0.545 |
-| 索引文件 `.idx`（24,521,440 B） | 全文搜 `cursor` / `pointer` / `PCCursor` | `cursor` 命中 18 条，**全是肉鸽地牢的连线件**（`img_cursor*.png`）与 `walkpreviewcursor.prefab`；`pointer` / `PCCursor` **命中 0** |
-| 13,163 个 `.ab` 资源包的文件名 | 筛 `pc` / `mouse` / `cursor` / `pointer` | 只有 3 个，其中 2 个是音效与战斗特效；`ui\[uc]pc.ab` 是唯一可疑项 |
-| `ui\[uc]pc.ab` | 手工解析 UnityFS 头（flag `0x243`，6 个数据块全 `flag=4` = LZHAM） | 块本身能定位，但 **LZHAM 解码器在 131,072 B 输出的大块上物理不可行**（24 个字典参数组合里，21 个 45 s 超时挂起、3 个 0.00 s 立即 `status code: 14` 失败）。这是解码器能力问题，不是格式问题 |
+| Texture2D/Sprite of all 16 `*.assets` | Regex-scanned names for `pointer\|cursor\|arrow\|mouse\|hand\|click\|aim\|select` | There are **only 3** genuine mouse cursor art assets |
+| What those 3 are | Exported and inspected one by one | `cursor_small` 48×48, `cursor_medium` 64×64, `cursor_large` 96×96 —— **all white arrows** |
+| Cursor tiers / hotspot configuration | `Torappu.UI.PCCursorRuntimeConfig` (path_id=28) in `sharedassets0.assets` | 3 tiers, all hotspots `(8,8)`, uncompressed RGBA32 |
+| Outline shape matching | Normalized all 1022 game textures ≥20px into 48×48 outlines and computed IoU against the crystal cursor | **The highest in the entire game is only 0.574**, and it is an unrelated UI piece; the game's own three arrows score only 0.548 / 0.546 / 0.545 |
+| Index file `.idx` (24,521,440 B) | Full-text search for `cursor` / `pointer` / `PCCursor` | `cursor` hits 18 entries, **all of them roguelike dungeon connector pieces** (`img_cursor*.png`) and `walkpreviewcursor.prefab`; `pointer` / `PCCursor` hit **0** |
+| Filenames of 13,163 `.ab` asset bundles | Filtered for `pc` / `mouse` / `cursor` / `pointer` | Only 3, and 2 of them are sound effects and battle VFX; `ui\[uc]pc.ab` is the only suspicious item |
+| `ui\[uc]pc.ab` | Manually parsed the UnityFS header (flag `0x243`, all 6 data blocks `flag=4` = LZHAM) | The blocks themselves can be located, but **the LZHAM decoder is physically infeasible on large blocks with 131,072 B of output** (out of 24 dictionary-parameter combinations, 21 hung until the 45 s timeout and 3 failed immediately in 0.00 s with `status code: 14`). This is a decoder capability problem, not a format problem |
 
-**那么那张图是哪来的？** 是你自己电脑上已经**整套装着**的第三方指针方案：
+**So where did that image come from?** It is a third-party cursor scheme you **already have fully installed** on your own computer:
 
 ```
 HKCU\Control Panel\Cursors
@@ -32,145 +32,145 @@ HKCU\Control Panel\Cursors
               cursors-34497b84e5b0d7cf\PRTS-Replica-v8-96x-normal.cur
 ```
 
-这个包由 `G:\Hypergryph Launcher\...` 之外的 **WebView2 安装器**部署（`C:\Users\22442\AppData\Local\PRTS\InstallerWebCache\EBWebView\` 里留下了 `prts.local` 的缓存痕迹），共 1408 个文件（1010 个 `.cur` + 396 个 `.ani`）。
+This pack was deployed by a **WebView2 installer** outside of `G:\Hypergryph Launcher\...` (it left traces of the `prts.local` cache in `C:\Users\22442\AppData\Local\PRTS\InstallerWebCache\EBWebView\`), 1408 files in total (1010 `.cur` + 396 `.ani`).
 
-所以本包做的事情是：**把你机器上这套已经在用的第三方美术，重新打包成一套尺寸可控、可一键切换、可一键回滚的规范安装包**（每个角色补齐 32/48/64/96/128/256 六档光栅，让 Windows 按当前光标尺寸与 DPI 自己挑，而不是让系统去拉伸一张小图）。
+So what this pack does is: **take this third-party artwork that is already in use on your machine and repackage it into a proper installer with controllable sizes, one-click switching, and one-click rollback** (each character gets all six rasters 32/48/64/96/128/256, so Windows picks according to the current cursor size and DPI itself, instead of letting the system stretch a small image).
 
-> 需要说清楚：源图**原生就只有 96×96**。128 与 256 两档是 96px 的**插值放大**，不会凭空长出细节——它们的价值在于让高 DPI 屏走「预先插值好的版本」，比系统实时拉伸更可控。
+> To be clear: the source image is **natively only 96×96**. The 128 and 256 tiers are **interpolated upscales** of 96px and will not conjure detail out of nothing —— their value is letting high-DPI screens use a "pre-interpolated version", which is more controllable than the system stretching in real time.
 
-我们**没有**、也**不会**修改游戏目录下的任何文件。
+We have **not** modified, and **will not** modify, any file under the game directory.
 
-### 1.2 关于「放大无损」——必须诚实说明
+### 1.2 About "lossless upscaling" —— an honest statement is required
 
-你在最初的设定里要求「放大过程需保证画面无损」。对**游戏自带的那三张白色箭头**，这一点是**可以严格做到**的：它们本质是一个矢量多边形 + 一层高斯阴影，我已经把母版几何拟合出来了（26 顶点多边形，96px 下还原误差 6 像素、MAE 0.00297），任意尺寸都是**从几何重新光栅化**，永远保持 1 像素抗锯齿斜坡，不存在插值糊边。
+In your original specification you asked that "the upscaling process must guarantee the image stays lossless". For **the game's own three white arrows**, this is **strictly achievable**: they are essentially a vector polygon plus a layer of Gaussian shadow, and I have fitted out the master geometry (a 26-vertex polygon, with 6 pixels of reconstruction error and MAE 0.00297 at 96px). Any size is **re-rasterized from the geometry**, always keeping a 1-pixel antialiasing ramp, with no interpolated blurry edges.
 
-但这套**水晶指针不行**，原因是我实测出来的：
+But this **crystal cursor cannot do that**, for reasons I measured myself:
 
-- 不透明像素（α>200）有 995–1009 个，**亮度值有 156 个不同档**，没有任何一个「面片」占据显著面积；
-- 容差分割：`tol=0` 得 868 个连通块（最大仅 9 px）；`tol=8` 才降到 309 个（最大 114 px）；
-- 内部梯度**零梯度只占 7.0%**，mean=14.77、p90=38。
+- There are 995–1009 opaque pixels (α>200), with **156 distinct luminance levels**, and no single "facet" occupies a significant area;
+- Tolerance segmentation: `tol=0` yields 868 connected components (the largest only 9 px); only at `tol=8` does it drop to 309 (the largest 114 px);
+- Internal gradient: **zero-gradient pixels account for only 7.0%**, mean=14.77, p90=38.
 
-也就是说，这是一张**连续着色的 3D 渲染图**（平滑渐变），不是平面刻面模型。它**没有可提取的解析几何**，任何放大都只能是插值。我不会拿「无损」这个词骗你。
+In other words, this is a **continuously shaded 3D render** (smooth gradients), not a flat faceted model. It has **no extractable analytic geometry**, so any upscaling can only be interpolation. I will not deceive you with the word "lossless".
 
-### 1.3 那这个包在放大上做了什么
+### 1.3 So what does this pack do about upscaling
 
-做了三件在插值框架内能做到最好的事：
+It does three things that are the best achievable within an interpolation framework:
 
-1. **96px 档保持像素级原样**——`large` 档的 96 光栅与源文件**逐像素完全一致**（已用 `True` 断言验证），不是「很接近」，是**同一份数据**。
-2. **预乘 alpha 重采样**。源图所有完全透明像素恰好是纯黑 `(0,0,0,0)`（6569 个像素，distinct RGB = 1）。直接对 straight alpha 做 LANCZOS 会把黑色渗进边缘形成黑边。本包全程走「预乘 → 缩放 → 反预乘」，`a==0` 直接写 `(0,0,0,0)`。实测 A/B：128px 下两者最大差 19/255，且**没有任何一个像素因为预乘而变暗**（0 px 退化）。
-3. **每个角色都给满 6 档光栅**（32/48/64/96/128/256），让 Windows 按当前光标尺寸和 DPI 自己挑最合适的那一档，而不是让系统去拉伸一张小图。其中 **96 是原始分辨率**，32/48/64 是缩小的（信息有损但视觉更锐），**128/256 是插值放大的**（不会增加细节，只是把插值工作从系统手里接过来）。
+1. **The 96px tier stays pixel-for-pixel as-is** —— the 96 raster of the `large` tier is **pixel-for-pixel identical** to the source file (verified with a `True` assertion); not "very close", but **the same data**.
+2. **Premultiplied-alpha resampling**. All fully transparent pixels in the source image happen to be pure black `(0,0,0,0)` (6569 pixels, distinct RGB = 1). Running LANCZOS directly on straight alpha would bleed black into the edges and create dark fringes. This pack goes "premultiply → scale → unpremultiply" throughout, and writes `(0,0,0,0)` directly when `a==0`. Measured A/B: at 128px the maximum difference between the two is 19/255, and **not a single pixel became darker because of premultiplication** (0 px degraded).
+3. **Every character gets all 6 rasters** (32/48/64/96/128/256), letting Windows pick the most suitable one for the current cursor size and DPI, instead of letting the system stretch a small image. Among them **96 is the native resolution**, 32/48/64 are downscales (information is lost but the image looks sharper), and **128/256 are interpolated upscales** (they add no detail, they just take the interpolation work away from the system).
 
-> **一句话**：96px 档 = 原始数据，零损失；其它档 = 高质量预乘 LANCZOS 插值，好于系统拉伸，但不是数学意义上的无损。
+> **In one sentence**: the 96px tier = original data, zero loss; the other tiers = high-quality premultiplied LANCZOS interpolation, better than system stretching, but not lossless in the mathematical sense.
 
 ---
 
-## 二、三档尺寸是怎么定的
+## 2. How the three tiers were determined
 
-游戏内 `CURSOR_SIZE` 是个 **SLIDER**（连续滑块，不是离散档位），它对应的实际美术资源只有 3 张。我把这三张的几何关系反解出来了，结论是一条**等比数列，公比 1/√2**：
+In-game `CURSOR_SIZE` is a **SLIDER** (a continuous slider, not discrete tiers), and it corresponds to only 3 actual art assets. I reverse-solved the geometric relationship among those three, and the conclusion is a **geometric sequence with a common ratio of 1/√2**:
 
-| 游戏档位 | 贴图 | 尺寸 | 相对比例 | 拟合出的缩放系数 |
+| In-game tier | Texture | Size | Relative ratio | Fitted scale factor |
 |---|---|---|---|---|
-| 1 | `cursor_small` | 48×48 | `0.50` | **0.5050**（残差 39 px） |
-| 2 | `cursor_medium` | 64×64 | `0.7071` | **0.709167**（残差 4 px） |
-| 3 | `cursor_large` | 96×96 | `1.00` | **1.0000**（残差 6 px） |
+| 1 | `cursor_small` | 48×48 | `0.50` | **0.5050** (residual 39 px) |
+| 2 | `cursor_medium` | 64×64 | `0.7071` | **0.709167** (residual 4 px) |
+| 3 | `cursor_large` | 96×96 | `1.00` | **1.0000** (residual 6 px) |
 
-注意中档是 **1/√2 ≈ 0.7071**，不是 2/3。用 2/3 去拟合会产生 86 px 残差，用 1/√2 只有 5 px —— 差了 17 倍，这不可能巧合。
+Note that the middle tier is **1/√2 ≈ 0.7071**, not 2/3. Fitting with 2/3 produces an 86 px residual, while 1/√2 gives only 5 px —— a 17-fold difference, which cannot be a coincidence.
 
-所以本包的三个档位直接对齐这条数列：
+So the three tiers of this pack align directly with this sequence:
 
-| 档位 | 增益 g | 视觉大小 | 说明 |
+| Tier | Gain g | Visual size | Notes |
 |---|---|---|---|
-| `small` 小 | `0.50` | 与游戏「小」档一致 | 最接近 Windows 默认指针观感 |
-| `medium` 中 | `0.7071` (1/√2) | 与游戏「中」档**完全一致** | 游戏内的等比中点 |
-| `large` 大 | `1.00` | 96px 原始分辨率 | 最清晰，推荐 2K/4K 屏 |
+| `small` | `0.50` | Same as the in-game "small" tier | Closest to the feel of the Windows default cursor |
+| `medium` | `0.7071` (1/√2) | **Exactly the same** as the in-game "medium" tier | The in-game geometric midpoint |
+| `large` | `1.00` | 96px native resolution | Sharpest, recommended for 2K/4K screens |
 
-**热点不随档位缩放。** 游戏里三档的热点固定在 `(8,8)`（箭头尖端所在像素），也就是说放大档位时是「笔身变大、笔尖不动」。本包沿用同一约定：画布 N 上热点落在 `(round(hx*N/96), round(hy*N/96))`，指针尖端的屏幕位置在任何档位都不变。
+**Hotspots do not scale with the tier.** In the game, the hotspot of all three tiers is fixed at `(8,8)` (the pixel where the arrow tip is), meaning that when you enlarge the tier, "the body grows, the tip stays put". This pack follows the same convention: on a canvas of N, the hotspot lands at `(round(hx*N/96), round(hy*N/96))`, and the on-screen position of the cursor tip is unchanged at any tier.
 
 ---
 
-## 三、包里有什么
+## 3. What is in the pack
 
 ```
 CrystalCursorPack\
-├─ README.md                  本文件
-├─ install.ps1                安装 / 切换 / 回滚脚本
-├─ before-install-backup.json 安装前的系统指针方案（回滚用）
-├─ _manifest.json             完整清单：每个文件的路径、字节数、类型、热点
-├─ preview_small.png          小档预览（17 个角色，红十字标出热点）
-├─ preview_medium.png         中档预览
-├─ preview_large.png          大档预览
-├─ compare_tiers.png          六角色 × 三档并排（按档位增益显示，直观看尺寸差）
-├─ edge_sharpness.png         边缘锐度对比：96px 原样 1x / 2x / 4x 与 4x LANCZOS
-├─ backup-applied.txt         首次安装时的注册表快照（仅供参考）
+├─ README.md                  This file
+├─ install.ps1                Install / switch / rollback script
+├─ before-install-backup.json The system cursor scheme before installation (for rollback)
+├─ _manifest.json             Full manifest: path, byte count, type, hotspot of every file
+├─ preview_small.png          Small tier preview (17 characters, hotspots marked with a red cross)
+├─ preview_medium.png         Medium tier preview
+├─ preview_large.png          Large tier preview
+├─ compare_tiers.png          Six characters × three tiers side by side (displayed by tier gain, for an intuitive sense of the size difference)
+├─ edge_sharpness.png         Edge sharpness comparison: 96px as-is 1x / 2x / 4x vs 4x LANCZOS
+├─ backup-applied.txt         Registry snapshot from the first install (for reference only)
 ├─ cursors\
-│   ├─ small\   Arknights_Crystal_<角色>_small.cur / .ani     （17 个）
-│   ├─ medium\  Arknights_Crystal_<角色>_medium.cur / .ani    （17 个）
-│   └─ large\   Arknights_Crystal_<角色>_large.cur / .ani     （17 个）
+│   ├─ small\   Arknights_Crystal_<character>_small.cur / .ani     (17)
+│   ├─ medium\  Arknights_Crystal_<character>_medium.cur / .ani    (17)
+│   └─ large\   Arknights_Crystal_<character>_large.cur / .ani     (17)
 └─ extracted\
-    ├─ Arknights_Crystal_<角色>_native96.png   17 张 96×96 原生分辨率 PNG（直接从源文件取，未经过缩放）
-    ├─ small\   每档每个角色的 PNG 预览
+    ├─ Arknights_Crystal_<character>_native96.png   17 native-resolution 96×96 PNGs (taken directly from the source files, never scaled)
+    ├─ small\   PNG preview of every character in each tier
     ├─ medium\
     └─ large\
 ```
 
-### 17 个角色与热点
+### The 17 characters and hotspots
 
-热点全部是**从源文件本身读出来的原生值**（ANI 的每一帧其实是内嵌的完整 `.cur` 文件，因此也自带热点），不是猜的：
+All hotspots are **native values read from the source files themselves** (each frame of an ANI is actually an embedded complete `.cur` file, so it carries its own hotspot too), not guesses:
 
-| 角色 | 用途 | 源文件 | 热点 (96px) |
+| Character | Use | Source file | Hotspot (96px) |
 |---|---|---|---|
-| Arrow | 正常选择 | `normal.cur` | (28, 20) |
-| Help | 帮助选择 | `helpsel.cur` | (28, 20) |
-| AppStarting | 后台运行 | `work.ani` | (28, 20) |
-| Wait | 忙碌 | `busy.ani` | (48, 48) |
-| Crosshair | 精确选择 | `cross.cur` | (48, 48) |
-| IBeam | 文本选择 | `beam.cur` | (48, 48) |
-| NWPen | 手写 | `pen.cur` | (8, 9) |
-| No | 不可用 | `unavail1.ani` | (28, 20) |
-| SizeNS | 垂直调整 | `sel_1.ani` | (48, 48) |
-| SizeWE | 水平调整 | `sel_2.ani` | (48, 48) |
-| SizeNWSE | 对角线调整 1 | `sel_3.ani` | (48, 48) |
-| SizeNESW | 对角线调整 2 | `sel_4.ani` | (48, 48) |
-| SizeAll | 移动 | `move.ani` | (48, 48) |
-| UpArrow | 候选选择 | `up.cur` | (48, 4) |
-| Hand | 链接选择 | `link.cur` | (28, 20) |
-| Pin | 位置选择 | `pin.cur` | (28, 20) |
-| Person | 人员选择 | `person.cur` | (28, 20) |
+| Arrow | Normal select | `normal.cur` | (28, 20) |
+| Help | Help select | `helpsel.cur` | (28, 20) |
+| AppStarting | Working in background | `work.ani` | (28, 20) |
+| Wait | Busy | `busy.ani` | (48, 48) |
+| Crosshair | Precise select | `cross.cur` | (48, 48) |
+| IBeam | Text select | `beam.cur` | (48, 48) |
+| NWPen | Handwriting | `pen.cur` | (8, 9) |
+| No | Unavailable | `unavail1.ani` | (28, 20) |
+| SizeNS | Vertical resize | `sel_1.ani` | (48, 48) |
+| SizeWE | Horizontal resize | `sel_2.ani` | (48, 48) |
+| SizeNWSE | Diagonal resize 1 | `sel_3.ani` | (48, 48) |
+| SizeNESW | Diagonal resize 2 | `sel_4.ani` | (48, 48) |
+| SizeAll | Move | `move.ani` | (48, 48) |
+| UpArrow | Alternate select | `up.cur` | (48, 4) |
+| Hand | Link select | `link.cur` | (28, 20) |
+| Pin | Location select | `pin.cur` | (28, 20) |
+| Person | Person select | `person.cur` | (28, 20) |
 
-其中 **8 个是动画指针**（`AppStarting`、`Wait`、`No`、`SizeNS`、`SizeWE`、`SizeNWSE`、`SizeNESW`、`SizeAll`），本包**完整保留了动画**：`AppStarting`/`Wait` 与 5 个调整类各 72 帧，`No` 30 帧，帧数与原文件逐一相同；原本带 `rate` 延时数组的（`AppStarting`、`Wait`）也原样保留，其余保持「无 rate chunk、用 `anih` 的 `dispRate`」的原格式。
+**8 of them are animated cursors** (`AppStarting`, `Wait`, `No`, `SizeNS`, `SizeWE`, `SizeNWSE`, `SizeNESW`, `SizeAll`), and this pack **fully preserves the animations**: `AppStarting`/`Wait` and the 5 resize ones have 72 frames each, `No` has 30 frames, with frame counts identical to the original files one by one; those that originally had a `rate` delay array (`AppStarting`, `Wait`) keep it as-is, and the rest keep the original format of "no rate chunk, using `anih`'s `dispRate`".
 
-> ⚠️ **这是本包相对于许多「指针转换工具」的关键差异**：那些工具会把 `.ani` 压成静态首帧，装完你会发现「忙碌」光标不转了。本包不会。
+> ⚠️ **This is the key difference between this pack and many "cursor conversion tools"**: those tools flatten `.ani` into a static first frame, and after installing you find that the "busy" cursor no longer spins. This pack does not.
 
 ---
 
-## 四、怎么装
+## 4. How to install
 
-### 4.1 一键安装（推荐）
+### 4.1 One-click install (recommended)
 
-在 PowerShell 里进到包目录：
+In PowerShell, go to the pack directory:
 
 ```powershell
 cd G:\ArknightsCursorExtract\CrystalCursorPack
 
-# 先看一眼当前状态和可用档位
+# Take a look at the current state and the available tiers first
 .\install.ps1
 
-# 安装「大」档（96px 原始分辨率）
+# Install the "large" tier (96px native resolution)
 .\install.ps1 -Tier large
 
-# 或者换成「中」档（与游戏内「中」档完全一致）
+# Or switch to the "medium" tier (exactly the same as the in-game "medium" tier)
 .\install.ps1 -Tier medium
 
-# 或者「小」档
+# Or the "small" tier
 .\install.ps1 -Tier small
 ```
 
-装完**立即生效**（脚本会对 16 个可即时切换的角色调用 `SetSystemCursor`，不需要注销）。
-若个别已打开的窗口没刷新，注销一次或重启 `explorer.exe` 即可。
+It takes effect **immediately** after installation (the script calls `SetSystemCursor` for the 16 characters that can be switched on the fly, no sign-out needed).
+If some already-open windows have not refreshed, sign out once or restart `explorer.exe`.
 
-### ⚠️ 4.1.1 重要：和 `PRTS-Motion-96.exe` 的冲突
+### ⚠️ 4.1.1 Important: conflict with `PRTS-Motion-96.exe`
 
-你机器上有一个常驻程序 **`PRTS-Motion-96.exe`**（PID 会变），并且它注册了开机自启：
+There is a resident program on your machine, **`PRTS-Motion-96.exe`** (the PID changes), and it has registered itself to start at boot:
 
 ```
 HKCU\Software\Microsoft\Windows\CurrentVersion\Run
@@ -178,67 +178,67 @@ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
                    "C:\Users\22442\AppData\Local\PRTS\Replica-v8-Windows\cursors-34497b84e5b0d7cf"
 ```
 
-它是 PRTS Replica 的「动态指针」后台：会周期性重新套用那套 96x 方案（它自己的日志 `cursors-34497b84e5b0d7cf\motion.log` 里写着 `reapply 48x48 70 ms base=32`）。**它可能把本包换掉。**
-`install.ps1` 每次安装结束都会自动检测并提示这个冲突。
+It is the "motion cursor" backend of PRTS Replica: it periodically re-applies that 96x scheme (its own log `cursors-34497b84e5b0d7cf\motion.log` says `reapply 48x48 70 ms base=32`). **It may replace this pack.**
+Every time `install.ps1` finishes an install it automatically detects and reports this conflict.
 
-**实测结论（40 秒连续监控）**：本次安装期间它**没有**覆盖本包 —— 但它是否在某个触发时机（如改变光标尺寸、锁屏、分辨率切换）重新套用，本包无法保证。
+**Measured conclusion (40 seconds of continuous monitoring)**: during this installation it did **not** overwrite this pack —— but this pack cannot guarantee whether it re-applies at some trigger moment (such as changing the cursor size, locking the screen, or switching resolution).
 
-**如果指针被换回去了，二选一：**
+**If the cursors get switched back, pick one of the two:**
 
 ```powershell
-# 方案 A：只是临时结束它（重启后还会自启）
+# Option A: just terminate it for now (it will still auto-start after a reboot)
 Stop-Process -Name 'PRTS-Motion-96' -Force
 .\install.ps1 -Tier large
 
-# 方案 B：连同开机自启一起移除（想彻底用本包时选这个）
+# Option B: remove it together with its auto-start entry (choose this when you want to use this pack for good)
 Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'PRTS-v8-Motion'
 Stop-Process -Name 'PRTS-Motion-96' -Force
 .\install.ps1 -Tier large
 ```
 
-> 注意：方案 B 只删掉**自启项**，不删除 PRTS 包的任何文件、也不改它的源码。想恢复就把那条 `Run` 键按上面的命令原文加回去，或重装一次 PRTS Replica。
-> 这一步是**可选**的 —— 只有当你发现指针被换回去时才需要做。
+> Note: Option B only deletes the **auto-start entry**; it does not delete any file of the PRTS pack, nor does it change its source code. To restore it, add that `Run` key back verbatim with the command above, or reinstall PRTS Replica once.
+> This step is **optional** —— you only need it when you find the cursors have been switched back.
 
-### 4.2 查看当前状态
+### 4.2 Viewing the current state
 
 ```powershell
 .\install.ps1 -Status
 ```
 
-会显示当前方案名、箭头指针路径，以及是否正在使用本包。
+It shows the current scheme name, the arrow cursor path, and whether this pack is currently in use.
 
-### 4.3 一键回滚
+### 4.3 One-click rollback
 
 ```powershell
 .\install.ps1 -Restore
 ```
 
-从 `before-install-backup.json` 还原安装前的完整方案（也就是你原来的 **PRTS Replica v8 96x**）。
-回滚同样是**立即生效**的（脚本会把还原后的 16 个角色重新喂给 `SetSystemCursor`）。
+Restores the complete scheme from before installation from `before-install-backup.json` (that is, your original **PRTS Replica v8 96x**).
+Rollback likewise takes effect **immediately** (the script feeds the 16 restored characters back to `SetSystemCursor`).
 
-### 4.4 手动安装（不想跑脚本的话）
+### 4.4 Manual installation (if you do not want to run the script)
 
-1. 打开「设置」→「个性化」→「主题」→「鼠标光标」
-2. 逐个角色点「浏览」，到 `cursors\large\` 里选对应的 `Arknights_Crystal_<角色>_large.cur` / `.ani`
-3. 点「另存为」，命名如「明日方舟 水晶指针 大」
+1. Open "Settings" → "Personalization" → "Themes" → "Mouse cursor"
+2. For each character click "Browse" and pick the corresponding `Arknights_Crystal_<character>_large.cur` / `.ani` from `cursors\large\`
+3. Click "Save as" and name it something like "Arknights Crystal Cursor Large"
 
-> **首次安装遇到「PowerShell 禁止运行脚本」**：执行
+> **If the first install hits "PowerShell prohibits running scripts"**: run
 > `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
-> 然后重试即可（只影响当前窗口，安全）。
+> and retry (it only affects the current window, and it is safe).
 
 ---
 
-## 五、这套包是怎么做出来的（可复现）
+## 5. How this pack was made (reproducible)
 
-### 5.1 工具与依赖
+### 5.1 Tools and dependencies
 
-- **Python 3.11.9**（本机已有）
-- **Pillow 12.3.0**（图像解码与 LANCZOS 重采样；仅此一个第三方依赖）
-- 构建脚本：`G:\ArknightsCursorExtract\tools\build_crystal_pack.py`（纯标准库 + Pillow，无 numpy）
+- **Python 3.11.9** (already on this machine)
+- **Pillow 12.3.0** (image decoding and LANCZOS resampling; the only third-party dependency)
+- Build script: `G:\ArknightsCursorExtract\tools\build_crystal_pack.py` (pure standard library + Pillow, no numpy)
 
-游戏侧的资源提取另用到 **UnityPy 1.25.4**；`.ani` 里的 LZHAM 数据块另需 **Python 3.10.11 + pylzham 0.1.3**（已落在 `G:\ArknightsCursorExtract\_lzham\py310\`，**导入名是 `lzham` 而不是 `pylzham`**）。
+Extracting the game-side assets additionally used **UnityPy 1.25.4**; the LZHAM data blocks inside `.ani` additionally required **Python 3.10.11 + pylzham 0.1.3** (already placed under `G:\ArknightsCursorExtract\_lzham\py310\`, and **the import name is `lzham`, not `pylzham`**).
 
-### 5.2 重建命令
+### 5.2 Rebuild commands
 
 ```powershell
 cd G:\ArknightsCursorExtract\tools
@@ -246,35 +246,35 @@ $env:PYTHONIOENCODING="utf-8"
 python build_crystal_pack.py
 ```
 
-脚本会读 `CrystalCursorPack\before-install-backup.json` 拿到 17 个角色的源文件路径，重建全部三档 × 17 角色，并刷新 `_manifest.json` 与三张预览图。
+The script reads `CrystalCursorPack\before-install-backup.json` to get the source file paths of the 17 characters, rebuilds all three tiers × 17 characters, and refreshes `_manifest.json` and the three preview images.
 
-### 5.3 两个容易踩的格式坑（已解决，记录备查）
+### 5.3 Two easy-to-hit format pitfalls (both solved, recorded for reference)
 
-**`.cur` 容器**：`ICONDIR` 只有 **3 个 u16**（reserved / type / count），不是 4 个；每项 16 字节 `<BBBBHHII>`；DIB 头里的高度字段是**实际高度的 2 倍**（XOR + AND 两张位图叠起来的高度）；当位图是 32bpp 直通 alpha 时 AND 掩码可以全零，Windows 只看 alpha 通道。
+**The `.cur` container**: `ICONDIR` has only **3 u16 fields** (reserved / type / count), not 4; each entry is 16 bytes `<BBBBHHII>`; the height field in the DIB header is **twice the actual height** (the combined height of the XOR + AND bitmaps stacked together); when the bitmap is 32bpp with straight alpha the AND mask may be all zeros, because Windows only looks at the alpha channel.
 
-**`.ani` 容器**：`RIFF` + `ACON`，顶层 `anih`(36 B) / `rate`(帧延时数组) / `LIST`。关键点——**`LIST` 的 type 字段是 `fram`**，子块从 LIST 数据起点 **+12 字节**开始（8 字节 chunk 头 + 4 字节 type），每个子块是 `icon`，**其载荷是一整个完整的 `.cur` 文件**。
+**The `.ani` container**: `RIFF` + `ACON`, with top-level `anih`(36 B) / `rate`(frame delay array) / `LIST`. The key point —— **the `LIST` type field is `fram`**, sub-blocks start **+12 bytes** from the start of the LIST data (8-byte chunk header + 4-byte type), each sub-block is an `icon`, and **its payload is an entire complete `.cur` file**.
 
-最初我把 `fram` 当成 LIST 的**子 chunk** 去找，结果永远找不到帧；真实关系是 `fram` 属于 LIST 的 **type 字段**。同源文件里 `work.ani` 的 `LIST@352`、`icon` 从 364 开始、每个 38,078 B、间距 38,086 = 8 + 38078，算术完全闭合。
+At first I looked for `fram` as a **sub-chunk** of the LIST, and consequently could never find the frames; the real relationship is that `fram` belongs to the LIST's **type field**. In the same source file, `work.ani`'s `LIST@352`, the `icon`s starting at 364, each 38,078 B, with a spacing of 38,086 = 8 + 38078, all add up exactly.
 
 ---
 
-## 六、边界情况与已知限制
+## 6. Edge cases and known limitations
 
-| 情况 | 本包的处理 |
+| Case | How this pack handles it |
 |---|---|
-| **「无损放大」无法对水晶美术成立** | 已在 §1.2 用实测数据说明原因（连续着色渲染图，156 个亮度档，零梯度仅 7%）。96px 档保持逐像素原样，其它档为预乘 LANCZOS 插值。**没有谎称无损。** |
-| **游戏内 `CURSOR_SIZE` 是连续滑块** | 已反解出游戏实际只有 3 档美术，比例为 1 : 1/√2 : 1/2。本包三档直接对齐这条数列，因此任意滑块位置都能被三档覆盖。 |
-| **资源被压缩/加密** | 游戏自带的三张指针贴图是 **TextureFormat 4 = RGBA32（未压缩）**，`m_CompleteImageSize` = `w*h*4` 精确成立（9216 / 16384 / 36864），导出 PNG 与原始 payload **逐字节 sha256 一致**。`ui\[uc]pc.ab` 的 LZHAM 块**没能解开**，已如实记录原因（解码器在大块上不可行），没有猜测其中内容。 |
-| **多份同名/不同来源的资源** | 已全部列出：游戏内正牌指针 = `sharedassets0.assets` 的 3 张白色箭头；本包美术 = 第三方 PRTS Replica v8 96x（1408 个文件，`AppData\Local\PRTS\`）。两者出处、字节数、sha256 均已记录。 |
-| **本机不存在更高分辨率源** | 已全盘搜过 `C:\Users\22442`、`G:\`、`D:\`、`C:\ProgramData`：不存在 256x 版本，也不存在安装包本体（只有 `PRTS-Motion-96.exe` 87,552 B）。所以 96px 就是本包能拿到的最高真实分辨率。 |
-| **游戏文件安全** | 全程只读。所有工具与产物都在 `G:\Hypergryph Launcher\games\Arknights\` **之外**。安装脚本只写 `HKCU\Control Panel\Cursors`，不需要管理员权限。 |
+| **"Lossless upscaling" cannot hold for the crystal artwork** | The reason is explained with measured data in §1.2 (a continuously shaded render, 156 luminance levels, zero-gradient only 7%). The 96px tier stays pixel-for-pixel as-is, and the other tiers are premultiplied LANCZOS interpolation. **No false claim of losslessness.** |
+| **In-game `CURSOR_SIZE` is a continuous slider** | It was reverse-solved that the game actually has only 3 art tiers, with ratios 1 : 1/√2 : 1/2. The three tiers of this pack align directly with that sequence, so any slider position is covered by the three tiers. |
+| **Assets being compressed/encrypted** | The game's own three cursor textures are **TextureFormat 4 = RGBA32 (uncompressed)**, and `m_CompleteImageSize` = `w*h*4` holds exactly (9216 / 16384 / 36864); the exported PNGs are **byte-for-byte sha256 identical** to the original payload. The LZHAM blocks of `ui\[uc]pc.ab` **could not be unpacked**, and the reason has been recorded truthfully (the decoder is infeasible on large blocks), without guessing at their contents. |
+| **Multiple resources with the same name / from different sources** | All are listed: the genuine in-game cursors = the 3 white arrows in `sharedassets0.assets`; this pack's artwork = third-party PRTS Replica v8 96x (1408 files, `AppData\Local\PRTS\`). The provenance, byte counts, and sha256 of both are recorded. |
+| **No higher-resolution source exists on this machine** | `C:\Users\22442`, `G:\`, `D:\`, and `C:\ProgramData` were all searched: no 256x version exists, and neither does the installer itself (only `PRTS-Motion-96.exe`, 87,552 B). So 96px is the highest true resolution this pack can obtain. |
+| **Game file safety** | Read-only throughout. All tools and outputs are **outside** `G:\Hypergryph Launcher\games\Arknights\`. The install script writes only to `HKCU\Control Panel\Cursors` and needs no administrator rights. |
 
 ---
 
-## 七、卸载
+## 7. Uninstalling
 
 ```powershell
-.\install.ps1 -Restore      # 还原安装前的 PRTS Replica v8 96x 方案
+.\install.ps1 -Restore      # restore the pre-install PRTS Replica v8 96x scheme
 ```
 
-还原后直接删掉 `CrystalCursorPack` 目录即可，系统里不留残余（`HKCU` 里只剩你原来的方案）。
+After restoring, simply delete the `CrystalCursorPack` directory and nothing is left in the system (only your original scheme remains in `HKCU`).

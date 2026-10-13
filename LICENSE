@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 明日方舟鼠标 (Arknights Mouse) contributors
+Copyright (c) 2026 Arknights Mouse contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-注意：上述 MIT 许可只覆盖本工程的**代码**（源码\、构建\、提取工具\、测试\）。
+Note: the MIT license above covers only this project's **code** (源码\、构建\、提取工具\、测试\).
 
-下面的**美术资源不属于本工程原创**，不在 MIT 许可范围内，请勿用于商业用途：
+The **art assets below are not original to this project**, are not covered by the MIT
+license, and must not be used commercially:
 
-  · 指针\                     水晶指针美术，来自第三方指针方案 "PRTS Replica v8 96x"
-  · 源码\arkmouse\art.bin      同上（打包后的帧数据）
-  · 源码\arkmouse\fx.bin       点击挤压 / 拖动爪子 / 待机动画的帧，同上
+  · 指针\                     Crystal cursor art, from the third-party cursor scheme "PRTS Replica v8 96x"
+  · 源码\arkmouse\art.bin      Same as above (packed frame data)
+  · 源码\arkmouse\fx.bin       Frames for the click squeeze / drag claw / idle animations, same as above
 
-来源：本机 `%LOCALAPPDATA%\PRTS\Replica-v8-Windows\cursors-34497b84e5b0d7cf\`
-（1010 个 .cur + 396 个 .ani），由第三方安装器 PRTS-Motion-96.exe 部署。
+Origin: this machine's `%LOCALAPPDATA%\PRTS\Replica-v8-Windows\cursors-34497b84e5b0d7cf\`
+(1010 .cur files + 396 .ani files), deployed by the third-party installer PRTS-Motion-96.exe.
 
-**这套美术不在《明日方舟》游戏客户端数据里** —— 工程里做过穷举核对：把全游戏
-1022 张 ≥20px 的贴图归一化成 48×48 轮廓与水晶指针算 IoU，全游戏最高只有 0.574
-（还是个无关 UI 件），游戏自带的 3 张箭头只有 0.548 / 0.546 / 0.545。
-名字里的 "Replica" 就是「复刻」，是第三方按游戏风格做的仿制品。
+**This art is not in the Arknights game client data** — the project did an exhaustive
+cross-check: normalizing all 1022 textures ≥20px in the entire game into 48×48
+silhouettes and computing IoU against the crystal cursor, the highest in the whole game
+is only 0.574 (and it's an unrelated UI piece); the 3 arrows shipped with the game are
+only 0.548 / 0.546 / 0.545.
+The "Replica" in the name means 复刻 (replica) — a third-party imitation made in the game's style.
 
-本工程只做「把已有指针装进 Windows」这件事，不声称对美术拥有任何权利，
-也不修改任何游戏文件。如果你是版权方并要求下架，请提 issue，会立刻处理。
+This project does only one thing: "get existing cursors installed into Windows". It claims
+no rights over the art, and does not modify any game files. If you are a rights holder and
+want it taken down, please file an issue and it will be handled immediately.
 ================================================================================
