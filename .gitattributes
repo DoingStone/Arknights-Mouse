@@ -1,0 +1,20 @@
+# Files git should never diff, merge or line-ending-normalise.
+# cursors/ alone is ~92 MB of .cur/.ani; letting git attempt a text diff on
+# those makes `git status` and GitHub's diff view unusable.
+*.exe   binary
+*.bin   binary
+*.cur   binary
+*.ani   binary
+*.ico   binary
+*.png   binary
+
+# PowerShell scripts must stay byte-exact: install.ps1 and make_release.ps1 are
+# UTF-8 *with BOM* and Windows PowerShell 5.1 mis-decodes them without it, which
+# shows up as "表达式或语句中包含意外的标记 }" at parse time. -text tells git to
+# keep the line endings it finds instead of normalising them.
+*.ps1   -text
+*.bat   -text
+
+# Everything else: no global convention is imposed, because the whole tree is
+# already committed with CRLF and core.autocrlf=false on the maintainer's
+# machine. Switching to `* text=auto` would rewrite the index for ~100 files.

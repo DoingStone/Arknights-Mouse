@@ -21,14 +21,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-Note: the MIT license above covers only this project's **code** (源码\、构建\、提取工具\、测试\).
+Note: the MIT license above covers only this project's **code** (`src/`, `build/`, `tools/`, `tests/`).
 
 The **art assets below are not original to this project**, are not covered by the MIT
 license, and must not be used commercially:
 
-  · 指针\                     Crystal cursor art, from the third-party cursor scheme "PRTS Replica v8 96x"
-  · 源码\arkmouse\art.bin      Same as above (packed frame data)
-  · 源码\arkmouse\fx.bin       Frames for the click squeeze / drag claw / idle animations, same as above
+  · cursors/                  Crystal cursor art, from the third-party cursor scheme "PRTS Replica v8 96x"
+  · src/arkmouse/art.bin      Same as above (packed frame data)
+  · src/arkmouse/fx.bin       Frames for the click squeeze / drag claw / idle animations, same as above
 
 Origin: this machine's `%LOCALAPPDATA%\PRTS\Replica-v8-Windows\cursors-34497b84e5b0d7cf\`
 (1010 .cur files + 396 .ani files), deployed by the third-party installer PRTS-Motion-96.exe.

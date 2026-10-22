@@ -1,31 +1,53 @@
-# ---- Runtime artifacts ----
+# ---- Python bytecode -------------------------------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Build intermediates
-构建/_work/
-构建/dist/
-构建/*.log
+# ---- Runtime state (created next to the exe on first run) ------------------
+settings.json
+userdata/
+runtime/
+
+# ---- Local cursor backups (written by install.ps1 / the guard) -------------
+cursors/backup-applied.txt
+cursors/before-install-backup.json
+
+# ---- Build outputs ---------------------------------------------------------
+build/_work/
+build/dist/
+build/*.log
 _release/
+release/
 发布/
 
-# ---- Local state and logs (regenerated when others run it, should not enter the repo) ----
-设置.json
-运行日志.txt
-守护状态.txt
-错误日志.txt
-鼠标参数备份_*.json
-_鼠标方案备份.json
-指针/backup-applied.txt
-指针/before-install-backup.json
+# ---- Ad-hoc probe scripts --------------------------------------------------
+# tools/ keeps eight maintained scripts; the rest were one-shot experiments.
+# Underscore-prefixed files are those experiments. Already-tracked scripts stay
+# tracked regardless of these rules.
+_*.py
+_*.ps1
+!tools/_verify_packbuild.py
+!tools/_applynow.ps1
+!tools/_diffchk.ps1
+!tools/_finalchk.ps1
+!tools/_pschk.ps1
+!tools/build_*.py
+!tools/extract_cursors.py
+!tools/import_prts_fx.py
+!tools/make_proof.py
+!tools/master_render.py
+!tools/rebuild_with_outline.py
+!tools/scan_provenance.py
 
-# ---- Internal development audit (not part of the product, not suitable for publishing) ----
-_UI优化审计/
+# ---- Internal development audit (not part of the product) ------------------
+_audit/
+_releasenotes.md
 
-# ---- Editors / system ----
+# ---- Acceptance scripts (offline harness, kept out of the published tree) --
+tests/
+
+# ---- Editors / OS ----------------------------------------------------------
 .vscode/
 .idea/
 Thumbs.db
 desktop.ini
-_releasenotes.md
