@@ -1,0 +1,46 @@
+==============================================================================
+全客户端「指针 / 箭头」类贴图出处清单
+==============================================================================
+扫描目录: G:\Hypergryph Launcher\games\Arknights\Arknights_Data
+扫描文件: 16 个 *.assets
+命中关键字: cursor, pointer, arrow
+
+[resources.assets]
+   path_id=21     ColorCubeCursorInactive                  16x16   fmt=4  RGBA32      complete=1024
+   path_id=96     ColorCubeCursorActive                    16x16   fmt=4  RGBA32      complete=1024
+
+[sharedassets0.assets]
+   path_id=7      cursor_medium                            64x64   fmt=4  RGBA32      complete=16384
+   path_id=11     cursor_small                             48x48   fmt=4  RGBA32      complete=9216
+   path_id=13     cursor_large                             96x96   fmt=4  RGBA32      complete=36864
+
+[sharedassets1.assets]
+   path_id=79     icon_arrow                               16x16   fmt=25 ASTC_RGB_8x8 complete=256
+   path_id=105    sprite_pointer_frame                    116x92   fmt=25 ASTC_RGB_8x8 complete=10672
+   path_id=331    sprite_pointer                          116x92   fmt=25 ASTC_RGB_8x8 complete=10672
+   path_id=339    sprite_arrow_right                       48x79   fmt=4  RGBA32      complete=15168
+
+[sharedassets10.assets]
+   path_id=55     friend_assist_float_select_frame_arrow   40x24   fmt=25 ASTC_RGB_8x8 complete=960
+   path_id=100    time_arrow                               44x52   fmt=25 ASTC_RGB_8x8 complete=2288
+   path_id=103    down_arrow                               28x24   fmt=25 ASTC_RGB_8x8 complete=672
+   path_id=145    triangle_arrow                           36x32   fmt=25 ASTC_RGB_8x8 complete=1152
+   path_id=240    image_arrow                              68x96   fmt=25 ASTC_RGB_8x8 complete=6528
+   path_id=351    transferarrow                            52x76   fmt=25 ASTC_RGB_8x8 complete=3952
+
+[sharedassets11.assets]
+   path_id=15     left_arrow                               40x72   fmt=25 ASTC_RGB_8x8 complete=2880
+
+[sharedassets13.assets]
+   path_id=3      DropdownArrow                            64x64   fmt=4  RGBA32      complete=21844
+
+[sharedassets9.assets]
+   path_id=26     arrow                                    80x144  fmt=25 ASTC_RGB_8x8 complete=11520
+   path_id=47     double_arrow                             16x12   fmt=25 ASTC_RGB_8x8 complete=192
+
+------------------------------------------------------------------------------
+合计命中 19 张贴图。
+说明：其中只有 sharedassets0.assets 的 cursor_small / cursor_medium /
+      cursor_large 三张是真正的鼠标指针美术；其余均为 UI 箭头/图标/
+      游戏内准星等，命名含 arrow/pointer 但与鼠标指针无关。
+      本次扫描未发现任何「同名不同来源」的指针贴图。

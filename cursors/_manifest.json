@@ -1,0 +1,507 @@
+{
+  "source_dir": "C:\\Users\\22442\\AppData\\Local\\PRTS\\Replica-v8-Windows\\cursors-34497b84e5b0d7cf",
+  "tiers": {
+    "small": {
+      "gain": 0.5,
+      "zh": "小",
+      "desc": "48px 档（对标游戏 cursor_small）",
+      "files": {
+        "Arrow": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Arrow_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Help": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Help_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "AppStarting": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_AppStarting_small.ani",
+          "bytes": 2742556,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Wait": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Wait_small.ani",
+          "bytes": 2742556,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "Crosshair": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Crosshair_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "IBeam": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_IBeam_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "NWPen": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_NWPen_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            8,
+            9
+          ]
+        },
+        "No": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_No_small.ani",
+          "bytes": 1142648,
+          "kind": "ani(30 帧, 96×96)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "SizeNS": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_SizeNS_small.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeWE": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_SizeWE_small.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeNWSE": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_SizeNWSE_small.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeNESW": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_SizeNESW_small.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeAll": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_SizeAll_small.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "UpArrow": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_UpArrow_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            4
+          ]
+        },
+        "Hand": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Hand_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Pin": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Pin_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Person": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\small\\Arknights_Crystal_Person_small.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        }
+      },
+      "total_bytes": 24002042
+    },
+    "medium": {
+      "gain": 0.7071067811865476,
+      "zh": "中",
+      "desc": "68px 档（对标游戏 cursor_medium，1/√2）",
+      "files": {
+        "Arrow": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Arrow_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Help": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Help_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "AppStarting": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_AppStarting_medium.ani",
+          "bytes": 2742556,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Wait": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Wait_medium.ani",
+          "bytes": 2742556,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "Crosshair": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Crosshair_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "IBeam": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_IBeam_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "NWPen": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_NWPen_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            8,
+            9
+          ]
+        },
+        "No": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_No_medium.ani",
+          "bytes": 1142648,
+          "kind": "ani(30 帧, 96×96)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "SizeNS": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_SizeNS_medium.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeWE": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_SizeWE_medium.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeNWSE": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_SizeNWSE_medium.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeNESW": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_SizeNESW_medium.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeAll": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_SizeAll_medium.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "UpArrow": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_UpArrow_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            4
+          ]
+        },
+        "Hand": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Hand_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Pin": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Pin_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Person": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\medium\\Arknights_Crystal_Person_medium.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        }
+      },
+      "total_bytes": 24002042
+    },
+    "large": {
+      "gain": 1.0,
+      "zh": "大",
+      "desc": "96px 档（对标游戏 cursor_large，原始分辨率）",
+      "files": {
+        "Arrow": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Arrow_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Help": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Help_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "AppStarting": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_AppStarting_large.ani",
+          "bytes": 2742556,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Wait": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Wait_large.ani",
+          "bytes": 2742556,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "Crosshair": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Crosshair_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "IBeam": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_IBeam_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "NWPen": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_NWPen_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            8,
+            9
+          ]
+        },
+        "No": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_No_large.ani",
+          "bytes": 1142648,
+          "kind": "ani(30 帧, 96×96)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "SizeNS": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_SizeNS_large.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeWE": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_SizeWE_large.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeNWSE": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_SizeNWSE_large.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeNESW": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_SizeNESW_large.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "SizeAll": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_SizeAll_large.ani",
+          "bytes": 2742260,
+          "kind": "ani(72 帧, 96×96)",
+          "hotspot_96": [
+            48,
+            48
+          ]
+        },
+        "UpArrow": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_UpArrow_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            48,
+            4
+          ]
+        },
+        "Hand": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Hand_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Pin": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Pin_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        },
+        "Person": {
+          "path": "G:\\ArknightsCursorExtract\\CrystalCursorPack\\cursors\\large\\Arknights_Crystal_Person_large.cur",
+          "bytes": 406998,
+          "kind": "cur(32+48+64+96+128+256)",
+          "hotspot_96": [
+            28,
+            20
+          ]
+        }
+      },
+      "total_bytes": 24002042
+    }
+  },
+  "roles": [
+    "Arrow",
+    "Help",
+    "AppStarting",
+    "Wait",
+    "Crosshair",
+    "IBeam",
+    "NWPen",
+    "No",
+    "SizeNS",
+    "SizeWE",
+    "SizeNWSE",
+    "SizeNESW",
+    "SizeAll",
+    "UpArrow",
+    "Hand",
+    "Pin",
+    "Person"
+  ]
+}
