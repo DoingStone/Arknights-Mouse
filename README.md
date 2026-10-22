@@ -1,153 +1,271 @@
-# 明日方舟 · 鼠标指针
+# Arknights · Mouse Cursor Project
 
-把《明日方舟》那套**水晶指针**装进 Windows 桌面，并把 **PRTS** 工程的三项手感效果
-（点击挤压 / 拖动爪子 / 待机动画）完整复刻过来。
+A crystal mouse-cursor pack for Windows, plus an exe tool that can **resize the cursors + manage mouse parameters**.
 
-不是皮肤包、不是壁纸 —— 它改的是**系统级光标**，在资源管理器、浏览器、任何程序里都生效。
-
-![界面截图](docs/screenshot.png)
+```
+Mouse\
+├── start.bat                  ← Double-click this to open the tool
+├── ArknightsMouse.exe           ← The tool itself (portable, double-click to run)
+├── settings.json                 ← Settings saved by the tool
+├── userdata\                     ← Runtime state (created on first run)
+│   ├── guard_status.txt           ← Live status of the cursor guard (pid / time / current size)
+│   ├── mouse_backup_*.json    ← Mouse parameter backups (written on "Back up current settings")
+│   ├── run.log               ← Rewritten on every launch, records normal output
+│   └── error.log               ← Only appears when the program throws an exception
+├── cursors\                      ← All cursor assets live in this single directory
+│   ├── cursors\<tier>\       ← Directly installable .cur/.ani (4 tiers × 17 roles)
+│   ├── extracted\<tier>\     ← Native PNG previews for each tier
+│   ├── raw\                    ← Raw textures exported from the game plus the extraction report
+│   ├── install.ps1            ← File-based installer (writes HKCU only)
+│   ├── README.md              ← Notes on the cursor pack itself
+│   └── SOURCE_zh.md           ← Where each asset came from
+├── tools\                  ← All extraction/analysis/acceptance scripts (reproducible)
+├── src\arkmouse\             ← The tool's Python source + self-contained art pack art.bin
+├── docs\                       ← Screenshots referenced by this README
+├── build\                      ← exe build scripts and artifacts
+├── README.zh-CN.md        ← The Chinese version of this document
+└── FEATURES_zh.md          ← Technical notes and acceptance record for the three effects
+```
 
 ---
 
-## 它做什么
+## 1. What this tool can do
 
-| 功能 | 说明 |
+Double-click **`start.bat`** (or `ArknightsMouse.exe`) to open it; there are two tabs:
+
+### Tab 1 · Cursor size
+
+Same idea as the "Mouse cursor scale setting" slider in the game settings, but **this one controls the mouse cursor of the entire computer**.
+
+| Control | Effect |
 |---|---|
-| **指针大小** | 滑杆实时调 32px ~ 192px，覆盖 17 个系统光标角色（箭头 / 文本 / 忙 / 十字 / 手型 …）。实测桌面真实像素并与设定比对，不一致会红字提醒 |
-| **点击挤压** | 按下鼠标时指针轻轻挤一下。用的是 PRTS 的 `hand_<角色>` **107 帧原帧美术**，弹簧参数（520/30、子步 1/240、最短按下 75ms）逐字照抄，幅度约 ±5% |
-| **拖动爪子** | 拖动窗口时指针变成爪子：张开 → 收拢 → 保持 → 松手收回，60fps 共 884ms |
-| **待机动画** | 鼠标静置 5 秒后，指针播放 PRTS 的待机帧动画（进入段 30 帧 @60fps，循环段 342 帧 @15fps） |
-| **指针守护** | 常驻进程。Windows 会在 explorer 重启、锁屏解锁、系统「鼠标设置」被打开等时机把光标重置回 32px 小指针，守护盯着并自动恢复 |
-| **一键还原** | 写 `HKCU`，不需要管理员权限；「恢复原始光标」一键回到用之前的状态 |
+| Slider `0.25× ~ 4.00×` | The cursor's actual pixel scale on screen. `1.00× = 96px` |
+| **★ In-game equivalent 1.20×** | One-click jump to 115px — **this is the size it looks like inside the game window** |
+| 96px = 1.00× | Native resolution |
+| 32px system default | Windows' original size |
+| 1.5× / 2× | Quick zoom-in |
+| Apply | Immediately applies to all 17 system cursor roles |
+| **Actual on desktop** (green text line) | Shows in real time how many pixels the cursor **really** is on the desktop, and compares it with the slider setting — when they match it shows `✓ matches the setting`, when they don't it shows a red warning |
+| Restore original cursors | Reverts to the cursors from before this tool was used |
+| Read current desktop size | Measures how many pixels the cursor actually is on screen right now |
+| Install cursors | Registers the file-based cursor scheme so it appears in **Mouse Properties → Pointers → Scheme**. If the `cursors\` directory is missing (e.g. you only downloaded the exe), it first rebuilds the cursor files from the built-in art pack — one tier takes about 3 seconds |
+| Enable animations | Busy, background-running, resizing and other roles get frame animations |
+| **Click squeeze (PRTS original frames)** | While pressed, the cursor is squeezed frame by frame using PRTS's original `hand_<role>_NNN` frames (107 frames, rest frame 006); on release it rebounds with overshoot and settles back to the original size. Spring parameters 520/30, substep 1/240, minimum press 75ms are all copied verbatim from PRTS `Runtime.cs:1154-1191` |
+| **Drag claw** | While dragging a window the cursor becomes a claw: `grab_enter`(12) → `grab_begin`(12) → `grab_loop` → on release `grab_end`(41) → `grab_return`(12), 60fps, 884ms total. Applies to the Arrow + SizeAll roles |
+| **Idle animation (cursor comes alive after sitting still)** | 5 seconds after the mouse goes idle, the cursor plays PRTS's idle frame animation (`idle_enter_frame` 30 frames @60fps → `idle_frame` 342 frames @15fps loop), only for the Arrow role |
 
-三项手感效果来自 PRTS，实现细节、出处行号与验收记录见 **[手感效果说明.md](手感效果说明.md)**。
+> For the full description of the three effects (PRTS provenance, change list, parameters, verification method) see
+> **[FEATURES_zh.md](FEATURES_zh.md)**. Key points: all three are ported from the PRTS project
+> `_prts_build\motion\src\Runtime.cs` (click `HandFrame:1154-1191`, drag
+> `DragFrame:1115-1137`/`DragVisual:1090-1113`, idle `IdleFrame:379-386`),
+> and the art frames were imported from PRTS's `PRTS-Replica-v8-96x-*.cur` into this project's `src\arkmouse\fx.bin`.
+> The "Click style" dropdown can also switch back to **the game's original multiplier scaling** (now ±10%, previously 0.75×~1.25×).
+> All three effects are driven by a resident process (the GUI or the guard; killing the process stops the effects).
+| **Launch at startup (including cursor guard)** | Writes a registry Run entry; boots the **cursor guard** automatically (see below) |
+| **Guard status** (shown inline) | `● Running (pid=… · currently 72px · 0.75×)` or `○ Not running` |
+| **Start guard / Stop guard** | Manually start/stop the resident guard process |
+
+
+### Key mechanism of Tab 1: the cursor guard (why it is mandatory)
+
+Windows' `SetSystemCursor` only installs a cursor in **memory**; the system reloads cursors from the registry scheme at many moments, wiping it out and falling back to the **32×32** small cursor resolved by `LoadCursorFromFileW`. Measured moments that trigger a reset:
+
+- `SystemParametersInfo(SPI_SETCURSORS)` (any program refreshing cursors calls it)
+- Changing `Accessibility\CursorSize` (the cursor size in Ease of Access)
+- **explorer starting / restarting** (→ this is why "autostart clearly ran, but the cursor is still small")
+- Lock/unlock, switching users, display settings changes
+- **Opening and saving the system "Mouse settings", switching themes** → even **the entire registry scheme** gets changed back to the old scheme
+
+So this tool has a resident **cursor guard** process (`ArknightsMouse.exe --guard`, with a tray icon) that watches two things at once:
+
+1. **In-memory cursor** — measures the actual desktop cursor size every 1.5 seconds; after 2 consecutive mismatches with the setting it re-pushes it (event-driven + polling as a fallback; detected means restored)
+2. **Registry scheme** — uses `Arrow` as a probe to check whether the 17 roles still point at this pack; if they were changed back it rewrites the whole scheme + broadcasts a refresh
+
+It also takes care of a third thing along the way: **the "Mouse Properties → Pointers → Scheme" dropdown lists this pack**. That is **a different key** (`HKCU\Control Panel\Cursors\Schemes`, value name = scheme name, value = 17 paths separated by commas in a fixed order), unrelated to the 17 role values above: if you only write the role values the slots are correct, but the user **cannot see this pack at all** in the scheme list, and after the system wipes the scheme they can't select it back themselves — only this program can rewrite it. The guard confirms it once on every push (it doesn't write if the content matches), and `cursors\install.ps1` registers the same entry after installing the files.
+
+As soon as `settings.json` changes, the guard switches sizes within 1.5 seconds; **no** restart is needed.
+
+**What autostart launches is the guard** (Run key = `"…\ArknightsMouse.exe" --guard`), so after boot the cursor automatically becomes the size and style you set; when the guard comes up it pops a tray balloon so you can see that it really started.
+
+> **Why doesn't the Run key write the size?** Older autostart wrote `--apply 1.200`, which was a snapshot of the slider "at the moment autostart was checked" — after you changed the size and only clicked "Apply", the Run key was not updated, so boot pushed the old size (this is the real culprit behind "the cursor is still wrong after boot"). Now the single source of truth for the size is `settings.json`, and the command line no longer carries a snapshot.
+
+**Why is this tool needed?** Because the cursor is big in-game but small on the desktop, for two reasons (both measured):
+
+1. **The game doesn't use the Windows cursor.** The game draws the cursor into its own frame, so it can scale with the in-game slider and looks large in a 1080p client area.
+2. **Windows pins the cursor at 32px.** Measured: `LoadCursorFromFileW` loading any `.cur` (even one carrying a 256px raster) returns **32×32**; `HKCU\Control Panel\Cursors\CursorBaseSize` and `HKCU\Software\Microsoft\Accessibility\CursorSize` (all 15 levels tried) are **completely ineffective for this machine's desktop cursor**.
+
+    Follow-up re-check (`_probe13.py`, with **a separate process for every measurement** to rule out user32's in-process caching): pointing `Arrow` at a `.cur` containing **a single raster** (one each at 32 / 48 / 72 / 96 / 128 / 256), what comes back after `SPI_SETCURSORS` is **invariably 32×32**, and **the hotspot is proportionally scaled down to the 32 tier** (the 96px raster's hotspot `(28,20)` → reads back as `(9,7)`) — this proves Windows **scales first, then loads**, rather than "picking one raster and using it 1:1". Then writing `CursorBaseSize` as 32 → 48 → 64 → 72 → 96 → 128 → 256 with `SPI_SETCURSORS` at each level, `GetSystemMetrics(SM_CXCURSOR)` and the read-back bitmap size are **always 32**; combining "a single 72px raster + `CursorBaseSize=72`" doesn't help either.
+
+    Conclusion: **"letting the scheme itself provide 72px" has no workable place in Windows** — a scheme is just "a name + 17 `.cur`/`.ani` paths", and `Schemes` has **no size field at all**; the pixel size can only be given in memory by `SetSystemCursor`. The `72px (0.75×)` in the scheme name is only a label for **humans**.
+
+So this tool bypasses Windows' size resolution: **it resamples to the target pixel size itself, then uses `CreateIconIndirect` to build an HCURSOR of any size and swaps it in directly with `SetSystemCursor`**. That way 115px really is 115px.
+
+> **Why is the in-game equivalent 1.20×?**
+> In your game screenshot, with "Mouse cursor scale setting = 0.75" the cursor measures about **115 physical pixels** (screenshot template matching NCC 0.913) = `96 × 1.20`. So pulling the slider to 1.20 matches how it looks in-game.
+
+### Tab 2 · Mouse parameters
+
+Windows' own mouse parameters, gathered into one interface: speed, pointer acceleration, double-click speed, wheel lines, mouse trails, hover time, swap left/right buttons, snap to default button, hide pointer while typing, pointer shadow, click lock.
+
+- **Back up current settings / Restore backup** — saved as `鼠标参数备份_*.json`, rollback at any time
+- **Restore recommended values** — speed 10 / acceleration off / double-click 500ms / wheel 3 lines / trails 0 / hover 400ms (a backup is taken automatically before clicking)
+- **Open system mouse settings** — jumps to `main.cpl`
+
+> **Pitfalls actually measured (this tool already implements them the correct way):**
+> - Pointer speed, acceleration: SPI `0x0070` / `0x0071`, **the value goes in pvParam**
+> - Mouse trails, hover time, wheel lines: SPI `0x005D` / `0x0067` / `0x0069`, **the value goes in uiParam** (putting it in pvParam "returns success but the value doesn't change")
+> - **Swap left/right buttons, snap to default button: not supported on this machine**, all three paths (SPI by value / SPI by address / write registry + broadcast) measured ineffective, so the UI simply greys them out and marks them "not supported on this machine" instead of faking success
+> - Wheel lines land in `HKCU\Control Panel\Desktop\WheelScrollLines` (**not** in `Control Panel\Mouse`); and after writing you **must not** call SPI `0x0069` again, otherwise it flushes the old value back
+> - Hide pointer while typing / pointer shadow / click lock authoritatively land in `UserPreferencesMask` bits (byte1 bit5 / byte1 bit7 / byte2 bit0)
+> - Double-click speed goes through `SetDoubleClickTime()`; `DoubleClickSpeed` in the registry does not follow along (that value is only read once at logon)
+> - **Dragging sliders no longer freezes**: every value change must broadcast `WM_SETTINGCHANGE` to all top-level windows, measured at **404 ms per broadcast** — triggering once per pixel while dragging freezes the UI for a dozen seconds. Now dragging only writes to disk without broadcasting (`flags=0x01`, **0.1 ms**, about 3400× faster), and 450 ms after release it does one broadcast + read-back verification in a **background thread**; the UI never stutters.
 
 ---
 
-## 直接下载用（推荐）
+## 2. Where this cursor came from (provenance)
 
-1. 到 **[Releases](../../releases)** 页下载 `Arknights-Mouse_v1.0_portable.zip`
-   （附件名是 ASCII 的，因为 **GitHub 会把附件名里的中文直接抹掉** —— 本地打包出来的
-   文件叫 `明日方舟鼠标_v1.0_portable.zip`，是同一个包；解压后里面仍是中文目录名）
-2. 解压到任意目录（**别放 C:\Program Files**，那里写不了配置）
-3. 双击 `启动.bat`（或直接双击 `明日方舟鼠标.exe`）
-4. 选尺寸 → 点「应用」→ 想要开机生效就勾上「开机自动启动（含守护）」
+**Important: the crystal cursor is not shipped with the game.**
 
-**要求**：Windows 10 / 11 64 位。
-**不需要**装 Python，**不需要**管理员权限，**不联网**。
+The real mouse cursor art in the game client is just three **white arrows**:
 
-想卸载：程序里点「恢复原始光标」+ 取消「开机自动启动」，然后删掉文件夹。
+| Texture | path_id | Size | Format | Hotspot |
+|---|---|---|---|---|
+| `cursor_small` | 11 | 48×48 | TextureFormat 4 = RGBA32 uncompressed | (8, 8) |
+| `cursor_medium` | 7 | 64×64 | same as above | (8, 8) |
+| `cursor_large` | 13 | 96×96 | same as above | (8, 8) |
+
+They are configured in the MonoBehaviour `PCCursorRuntimeConfig` with path_id=28 (namespace `Torappu.UI`) inside `Arknights_Data\sharedassets0.assets`. `CURSOR_SIZE` in the game settings is a **SLIDER**, and the three art tiers measure **1 : 1/√2 : 1/2** (fit coefficients 0.5050 / 0.709167 / 1.0000; the middle tier is 1/√2, **not** 2/3 — using 2/3 leaves an 86px residual, while 1/√2 leaves only 5px).
+
+**The crystal cursor you wanted comes from a third-party skin pack**: `PRTS Replica v8 96x`, installed on this machine at
+`C:\Users\22442\AppData\Local\PRTS\Replica-v8-Windows\cursors-34497b84e5b0d7cf\`,
+deployed by `PRTS-Motion-96.exe` (a WebView2 installer, domain `prts.local`).
+
+Basis for this conclusion (all measured, not guessed):
+
+| Check | Result |
+|---|---|
+| Full Texture2D/Sprite scan of 16 `*.assets` files | The only cursor-type assets are the 3 white arrows above |
+| `cursor` hits 18 entries in the `.idx` plaintext index | All are roguelike dungeon connector pieces; `pointer`/`PCCursor` hit **0** |
+| Contour IoU matching (817 candidates, normalized 48×48 mask) | The highest in the whole game is only **0.574**, and it is an unrelated UI asset (`sprite_char_background4`); the three white arrows score 0.548/0.546/0.545 |
+| Whole-disk search for `install-bridge.js`/`grab-cursor.js`/`mesh-renderer.js` | Only hits PRTS's WebView2 cache |
+| `HKCU\Control Panel\Cursors` | All 17 roles point at the PRTS pack (before installing this tool) |
+
+The nature of the in-game cursor was also measured: a **continuously shaded 3D render**, with **156 distinct brightness levels** among opaque pixels (zero-gradient accounts for only 7.0%), **cannot be vectorized**, so enlarging can only rely on interpolation — unlike the white arrows, which can be re-rendered analytically and losslessly.
 
 ---
 
-## 从源码跑
+## 3. Cursors (file form, for the system)
+
+`cursors\` contains three tiers × 17 roles of `.cur` / `.ani`, plus a PowerShell installer:
 
 ```powershell
-git clone https://github.com/DoingStone/Arknights-Mouse.git
-cd Arknights-Mouse
-python 源码\arkmouse\main.pyw
+cd cursors
+.\install.ps1 -Tier large     # Three tiers: small / medium / large
+.\install.ps1 -Status         # Show current status
+.\install.ps1 -Restore        # Restore
 ```
 
-需要 Python 3.9+ 和 Pillow：
+The three tiers correspond to the game's three art ratios:
+
+| Tier | Ratio | Source size | Notes |
+|---|---|---|---|
+| small | 0.50× | 48px | Matches the game's `cursor_small` |
+| medium | 0.7071× | 68px | Matches the game's `cursor_medium` (1/√2) |
+| large | 1.00× | 96px | Matches the game's `cursor_large`, **native resolution of the source image** |
+
+Each `.cur` in the pack carries 6 rasters: 32 / 48 / 64 / 96 / 128 / 256px, with hotspots converted tier by tier as `round(hotspot × N/96)`.
+**The 96px raster is pixel-for-pixel identical to the source image** (17/17 verified); 128/256 are interpolated enlargements and will not grow new detail.
+
+> `install.ps1` is enough to install the file-based cursor scheme; **but note that it will display at 32px because of the Windows 32px lock described above** — for a genuinely large cursor, use the slider in `ArknightsMouse.exe`.
+
+---
+
+## 4. Reproducible extraction pipeline
+
+### Environment
+
+| Item | Value |
+|---|---|
+| Game | Arknights PC version build 78.0.0 (Unity 2021.3.39f1, IL2CPP) |
+| Python | 3.11.9 (`UnityPy 1.25.4`, `Pillow 12.3.0`) |
+| Game directory | `G:\Hypergryph Launcher\games\Arknights\` (**read-only throughout**) |
+
+### Extract the game's built-in cursors
 
 ```powershell
-pip install pillow
+cd tools
+python extract_cursors.py    # Artifacts land in cursors\extracted\
 ```
 
----
+Exports `cursor_small.png` / `cursor_medium.png` / `cursor_large.png`, and compares their pixels against the original payload with sha256 (byte-for-byte identical, **no compression artifacts** — `m_CompleteImageSize` = 9216/16384/36864 exactly equals `w*h*4`, indicating uncompressed RGBA32).
 
-## 自己重建 exe
+### Extract the crystal cursor
 
 ```powershell
-pip install pyinstaller pillow
-python 构建\build_exe.py
+cd tools
+python _curextract.py     # Pulls the image out of PRTS's .cur (96×96, hotspot (28,20))
+python _artpack.py        # Packs 17 roles, 543 frames into the self-contained art.bin (3.06 MB)
 ```
 
-产物在 `构建\dist\`。脚本会把 `art.bin` 和 `fx.bin` 一起塞进 exe
-（**漏掉 `fx.bin` 的话三项效果会静默全关**，见 `构建\build_exe.py` 的注释）。
-
-打包免安装 zip：
+### Rebuild the exe
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File 构建\make_release.ps1 -Version 1.0
+cd build
+python build_exe.py
 ```
 
----
+### `.cur` / `.ani` format notes
 
-## 工程结构
-
-```
-源码\arkmouse\          主程序
-  main.pyw              GUI（Tkinter）+ CLI
-  cursorwin.py          光标引擎：光栅化 / 尺寸阶梯 / 暗描边 / 动画状态机
-  prtsfx.py             PRTS 三项效果（点击弹簧、拖动钩子、待机时序）
-  guard.py              指针守护
-  artpack.py            art.bin / fx.bin 的读取
-  paths.py              打包版与源码版的路径解析
-  store.py              设置读写
-  art.bin               指针美术（17 个角色的帧数据）
-  fx.bin                PRTS 效果美术（986 帧 / 12 族 / 6.97 MB）
-
-指针\                   全部指针素材都在这一个目录里
-  cursors\<档>\         可直接安装的指针文件（.cur/.ani × 4 档 × 17 角色）
-  extracted\<档>\       每档的原生 PNG 预览图
-  原始提取\              从游戏里导出的原始贴图与提取报告
-  install.ps1           文件形式的安装器（只写 HKCU）
-  README.md             指针包自己的说明
-  提取来源说明.md        这些素材分别是从哪来的
-提取工具\               从游戏与皮肤包里提取、重建指针资源
-构建\                   build_exe.py / make_release.ps1
-测试\                   各项验收脚本（离线逻辑 + 上屏端到端）
-说明.md                 完整产品说明
-手感效果说明.md          三项效果的技术细节与验收
-```
+- **`.cur`**: `ICONDIR` has only **3 u16s** (reserved/type/count); each entry is `<BBBBHHII>` (width/height/color count/reserved/hotspot x/hotspot y/byte size/offset), width or height of 0 means 256; if the payload starts with `\x89PNG` it is a PNG, otherwise it is a `BITMAPINFOHEADER`, and **the height field is twice the actual height**, with pixels stored as **bottom-up** BGRA.
+- **`.ani`**: `RIFF` + `ACON`; the top level has only `anih` / `rate` / `LIST`; **`fram` is the LIST's type field, not a sub-chunk** — sub-chunks start **+12 bytes** from the start of the LIST data; each `icon` sub-chunk's payload is **one whole complete `.cur` file** (carrying its own hotspot). We keep this structure exactly as-is when packing.
 
 ---
 
-## 一些实现上的取舍
+## 5. Known limitations
 
-- **为什么给指针建尺寸阶梯，而不是每次现缩**：`make_hcursor_pm` 实测 2.2–4.7 ms/档，
-  17 个角色现造要 300–400 ms，远超 8 ms 的动画 tick。所以构建期铺好阶梯，
-  运行期只做 `CopyIcon` + `SetSystemCursor`（0.2 ms）。
-- **为什么用轮询读键态，而不是 `WH_MOUSE_LL` 全局钩子**：低级钩子会被系统按
-  `LowLevelHooksTimeout` 静默摘掉，回调一旦漏掉 `WM_LBUTTONUP` 指针就永远停在缩小态。
-  `GetAsyncKeyState` 读物理键态，没有「事件」可丢，"卡住"在结构上不存在。
-  （唯一的例外是拖动检测 —— 那必须用 `SetWinEventHook`，所以动画线程里补了个消息泵。）
-- **为什么预乘 alpha 自己算**：`premul_resize` 是「预乘 → LANCZOS → 反预乘」，
-  跑了 1188 组与旧实现对照，逐字节相同；而 `Image.alpha_composite` / `ImageChops.multiply`
-  版都不等价（视觉误差 9–15）。水晶指针的卖点就是边缘锐利，宁可慢一点。
-- **暗描边**：深色背景下白色指针看不清，所以给浅色指针补一圈 1px 半透明描边。
-  PRTS 的美术自带描边，本工程自动跳过（`needs_outline` 判定）。
-
----
-
-## 已知限制
-
-1. **三项效果需要常驻进程**（GUI 或 `--guard`）。关掉又不跑守护，效果就停了。
-2. **`NWPen`（手写笔）角色恒为 16/17** —— Windows 没有给它对应的 `SetSystemCursor` 接口。
-3. **爪子和待机固定在箭头（+ 移动）角色**，不像 PRTS 那样跟随当前角色。
-4. **待机退出没有过渡帧**（PRTS 那两段是 `.ani` 多帧文件，没随美术导入）。
-5. **游戏原版倍率缩放**（`click_style = "game"`）的两条缓动曲线不是游戏原值 ——
-   `_onBtnDownAnim` / `_onBtnUpAnim` 的关键帧锁在一个 flag=4 的非标准压缩块里，
-   已实测排除 LZ4 / LZMA2 / deflate / zlib / bz2 / brotli / LZO。详见 `手感效果说明.md` 附录 A。
+| Item | Notes |
+|---|---|
+| Source image resolution | The crystal cursor is **natively only 96×96**; the 128/256 rasters are interpolated enlargements and will not grow new detail |
+| Lossless enlargement | The crystal is a continuously shaded 3D render and **cannot be vectorized**; the 96px tier stays pixel-for-pixel, the other tiers use premultiplied-alpha LANCZOS interpolation |
+| NWPen (handwriting) | No system programmable interface; it is the only one of the 17 roles that cannot be changed (the "16/17" in the logs is it) |
+| Swap left/right buttons / snap to default button | **Not supported on this machine** (SPI by value / SPI by address / write registry + broadcast, all three paths tried); the UI greys them out and labels them, and does not falsely report success |
+| Wheel semantics | "0 = scroll one screen at a time" is the Windows documented semantics, **not end-to-end tested** — synthetic scroll events cannot drive a test window and can only fail silently |
+| After the guard stops | The cursor reverts to the 32px small cursor the next time the system reloads it; this is Windows' behavior, not a bug |
+| `ui\[uc]pc.ab` | Block-level compression flag=4 (LZHAM), no usable decoder on this machine, not unpacked. **Does not affect delivery**: the three `.assets` were exhaustively searched and the only cursor-type art is the white arrows |
+| `web_search` | Unavailable on this machine (firecrawl 403) |
+| `prts.local` | DNS cannot resolve it (a local virtual domain, service is down) |
+| PRTS-Motion-96.exe | **Does not affect this tool.** Measured while letting it run and sampling continuously for 25 seconds (17 samples), the desktop cursor **stayed stable at 115×115 without changing once** — it only reinstalls its own file-based cursors and does not touch the in-memory cursor |
 
 ---
 
-## 版权与许可
+## 6. Uninstall / restore
 
-**代码**（`源码\`、`构建\`、`提取工具\`、`测试\`）以 **MIT** 许可发布，见 [LICENSE](LICENSE)。
+1. **Restore cursors**: click "Restore original cursors" in the tool, or `cursors\install.ps1 -Restore`
+2. **Stop the guard**: click "Stop guard" in the tool (otherwise it will keep changing the cursor back to this pack)
+3. **Turn off autostart**: uncheck "Launch at startup (including cursor guard)" in the tool
+4. **Restore mouse parameters**: click "Restore backup" in tab 2 of the tool
+5. **Full removal**: just delete the entire `Mouse` folder (there is no installation process and nothing is written to system directories)
 
-**美术资源不属于本工程原创**，不在 MIT 许可范围内：
+---
 
-- `指针\`、`源码\arkmouse\art.bin`、`源码\arkmouse\fx.bin`
-  里的水晶指针美术来自第三方指针方案 **PRTS Replica v8 96x**
-  （本机 `%LOCALAPPDATA%\PRTS\Replica-v8-Windows\`，1010 个 `.cur` + 396 个 `.ani`）。
+## 7. Acceptance status
 
-**这套美术不在《明日方舟》游戏客户端数据里。** 工程里做过穷举核对：把全游戏 1022 张
-≥20px 的贴图归一化成 48×48 轮廓与水晶指针算 IoU，**全游戏最高只有 0.574**（还是个无关
-UI 件），游戏自带的 3 张箭头只有 0.548 / 0.546 / 0.545。名字里的 "Replica" 就是「复刻」。
+| Acceptance item | Status |
+|---|---|
+| Exported game cursors are pixel-for-pixel identical to the original textures | ✅ sha256 comparison passed |
+| Hotspot coordinates match the in-game declaration | ✅ (8,8) for all three tiers, config read from `PCCursorRuntimeConfig` |
+| Extraction commands reproduce the same result | ✅ see section 4 |
+| Cursors can be installed / switched / restored | ✅ measured passing for all three tiers, lossless rollback |
+| Desktop cursor size = size inside the game window | ✅ slider 1.20× = 115px; 5 consecutive desktop samples all `(115,115)` with hotspot `(34,24)` |
+| The exe opens normally and the UI is complete | ✅ both tabs visually reviewed via screenshots, no `error.log` throughout |
+| The exe can genuinely change system state | ✅ 12 GUI paths + 11 setters all measured effective |
+| **Launch at startup** | ✅ Run key = `"…\ArknightsMouse.exe" --guard`; cold-start simulation measured passing |
+| **Cursor is the set size after boot** | ✅ within 3.2 seconds of cold start it auto-pushes 72px (reads `settings.json`, no longer uses a command-line snapshot) |
+| **Cursor does not revert after a restart** | ✅ simulated "wipe the in-memory cursor + registry scheme changed back to HuiRan" → within 3.2 seconds it restores `72px` and `17/17` roles |
+| **Wheel and other sliders no longer freeze** | ✅ dragging 0.1 ms per change (689 ms before the fix, ≈3400× faster), released commits happen in the background |
+| System cursor scheme points at the new location | ✅ all 17 roles point at `cursors\cursors\large`, scheme name `明日方舟 水晶指针 大 (1.00×)`, no leftover `G:` paths |
+| **The skin is registered in "Mouse Properties → Schemes"** | ✅ `HKCU\Control Panel\Cursors\Schemes\明日方舟 水晶指针 大 (1.00×)` = 17 paths (order matches `cursorwin.ROLES`), directly selectable in the dropdown; the guard confirms it on every push, and `install.ps1` registers it too |
 
-游戏目录只为**对照实验**读过一次（`源码\` 的提取脚本全程只读），成品里没有任何游戏美术。
-
-本工程只做「把已有指针装进 Windows」这件事，**不声称对美术拥有任何权利**，
-请勿用于商业用途。如果你是版权方并要求下架，提 issue 会立刻处理。
+> The final acceptance script is `tools\_finalcheck.py` (**all 35 items pass**),
+> plus `_guiverify.py` (12 GUI items), `_fixverify.py` (11 setter items),
+> `_guardtest.py` (guard end-to-end), `_coldboot.py` (cold-start full chain), `_schemaguard.py` (scheme self-healing).
