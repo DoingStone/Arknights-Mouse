@@ -41,6 +41,31 @@ TIERS = [('small', 0.50, 'small'), ('medium', 2.0 ** -0.5, 'medium'),
 ROLES = list(B.ROLE_ORDER)
 
 
+def _load_source_ani():
+    """源 .ani 的 anih / rate，用于**原样搬运**到重打出来的 .ani。
+
+    踩过的坑：旧版这里把 anih 的 dispRate 写死成 1，rate 又误传了 art.bin 里的
+    **毫秒**值（`pk.rates_ms()`），结果 No 的 dispRate 4→1（快 4 倍），
+    AppStarting / Wait 的 rate 1→16（慢 16 倍）。两边帧数一致，整块照搬才精确。
+    """
+    p = os.path.join(B.OUT, 'before-install-backup.json')
+    reg = json.load(open(p, encoding='utf-8'))
+    roles = reg['current'] if 'current' in reg else reg
+    out = {}
+    for r in ROLES:
+        v = roles.get(r)
+        if not v:
+            continue
+        sp = v if os.path.isabs(v) else os.path.join(B.SRCDIR, v)
+        if sp.lower().endswith('.ani') and os.path.exists(sp):
+            _frames, anih, rate = B.read_ani(sp)
+            out[r] = (anih, rate)
+    return out
+
+
+SRC_ANI = _load_source_ani()
+
+
 def rebuild_artbin(frames_by_role, hotspot_by_role, rate_by_role, path):
     """按 _artpack.py 的格式重写 art.bin（magic + jlen + json + png 拼接）。"""
     blobs, index = [], {}
@@ -97,7 +122,15 @@ def main():
             kept.append(key)
             tag = '保持原样'
         hotspot_by_role[key] = list(pk.hotspot(key))
-        rate_by_role[key] = pk.rates_ms(key)
+        # art.bin 存的是**毫秒**（引擎 `cursorwin.py:756` 取平均当每帧节拍）。
+        # 源 .ani 没有 rate 数组时 `rates_ms()` 返回 None，引擎会退回写死的
+        # 20ms —— 对 dispRate=4 的 No 来说就是 3.3 倍速。这里按源 dispRate
+        # （jiffies，1/60 s）补出真实毫秒，别让写死的默认值生效。
+        _rate = pk.rates_ms(key)
+        _src = SRC_ANI.get(key)
+        if not _rate and _src:
+            _rate = [int(round(_src[0][7] * 1000.0 / 60.0))] * len(frames)
+        rate_by_role[key] = _rate
         frames_by_role[key] = frames
         print('  %-12s %-8s %3d 帧  实心最小亮度=%3d'
               % (key, tag, len(frames), cw._solid_min_luma(im0)))
@@ -132,11 +165,14 @@ def main():
                 out_frames = [B.place(im, gain, B.NATIVE, hx, hy)[0]
                               for (im, _a, _b) in frames]
                 # anih = (cbSize, nFrames, nSteps, w, h, bpp, planes, dispRate, flags)
-                # dispRate=1 / flags=1 是四个档位 .ani 实测一致的取值；
-                # write_ani 内部会把 nFrames/nSteps 换成实际帧数。
-                anih = (36, len(out_frames), len(out_frames), 0, 0, 32, 1, 1, 1)
+                # dispRate 与 rate 一律照搬源 .ani：write_ani 只会把
+                # nFrames/nSteps 换成实际帧数，其余字段原样写出。
+                _src = SRC_ANI.get(key)
+                if _src:
+                    anih, rate = _src[0][:9], _src[1]
+                else:
+                    anih, rate = (36, 0, 0, 0, 0, 32, 1, 1, 1), None
                 p = os.path.join(dst, 'Arknights_Crystal_%s_%s.ani' % (key, suffix))
-                rate = rate_by_role.get(key)
                 nb = B.write_ani(p, [(im, hx, hy) for im in out_frames], anih, rate)
                 print('  %-6s %-12s ANI %3d 帧  %8d B' % (tier, key, len(out_frames), nb))
             else:
