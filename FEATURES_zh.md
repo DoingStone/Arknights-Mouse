@@ -1,0 +1,416 @@
+# click-squash / drag-claw / idle animation —— Implementation Notes and Acceptance
+
+> All three effects are **ported from the PRTS project** (`E:\Qianmory\下载\QuarkDownload\PRTS-Windows-1.1.4`,
+> decompiled source at `_prts_build\motion\src\Runtime.cs`). This document records the provenance, the landing
+> points, the parameters, and the verification methods. The companion engine-level design (pre-built ladder,
+> polling instead of hooks, premultiplied alpha) is in Sections 5 and 6.
+
+---
+
+## 0. Effect Overview
+
+| # | Effect | Trigger | Timeline | Roles affected |
+|---|---|---|---|---|
+| ① | **click-squash** | Press any mouse button | Spring squash → release rebound overshoot → settle back to original size | Arrow / Help / Hand / Pin / Person |
+| ② | **drag-claw** | Drag the window title bar | `grab_enter`12 → `grab_begin`12 → `grab_loop` hold → release `grab_end`41 → `grab_return`12 (60fps, 884ms total) | Arrow + SizeAll |
+| ③ | **idle animation** | Mouse idle for 5 seconds | `idle_enter_frame` 30 frames @60fps (500ms) → `idle_frame` 342 frames @15fps loop | Arrow |
+
+①②③ **are all driven by a resident process** (the GUI, or `ArknightsMouse.exe --guard`); kill the process and the effects stop.
+
+---
+
+## 1. Provenance: PRTS's `Runtime.cs`
+
+| Effect | PRTS function (line numbers verifiable) |
+|---|---|
+| ① | `HandFrame(string role, bool down, string phase, long now) 1154-1191` |
+| ② | `DragFrame 1115-1137`, `DragVisual 1090-1113`, `InitDrag 1031-1035`, `MoveEvent 1051-1088`, `PollMove 992-1008`, `ProbeCaption 1037-1049` |
+| ③ | `IdleFrame 379-386`, `VisualPhase 388-425` |
+| Role table | `Roles[17] 142-146`, `AllIds[17] 148-152` (`normal` → `32512` = `IDC_ARROW`) |
+| Idle start | `Motion.cs:73` `idle >= int.Parse(Config.Get("seconds")) * 1000` |
+
+### 1.1 ①'s spring parameters (copied verbatim)
+
+```csharp
+num = Math.Min(0.08, Math.Max(0.0, (now - springAt) / 1000.0));   // :1169 dt capped at 75ms→0.08s
+if (pressed) minPressUntil = now + 75;                             // :1173 minimum press 75ms
+while (num > 0) {                                                  // :1176 sub-step integration
+    num2 = Math.Min(num, 1.0 / 240.0);                             // :1178 sub-step 1/240 s
+    num3 = ((down || now < minPressUntil) ? 1 : 0);
+    velocity    += (520.0 * (num3 - compression) - 30.0 * velocity) * num2;   // :1180
+    compression += velocity * num2;
+    num -= num2;
+}
+// convergence criterion :1186 —— when |compression|<1e-4 and |velocity|<1e-3, return "" (back to normal state)
+num4 = (int)Math.Round(Math.Max(-0.06, Math.Min(1.0, compression)) * 100.0);  // :1189 clamped to [-6%, 100%]
+return "hand_" + role + "_" + (num4 + 6).ToString("D3");           // :1190 frame number 000..106
+```
+
+- Frame number `006` = compression amount 0 = **identity frame** (pixel-identical to the normal Arrow, measured).
+- `compression > 1` overshoots and is clamped by `Math.Min(1.0, …)` to frame 106.
+- The art is a **frame-baked non-uniform squash**, not uniform scaling. Scaling `hand_normal_006` by
+  `sqrt(mass ratio)` and comparing against the real frames gives IoU of only 0.81–0.97 and RMS 4–18 →
+  **the original frames must be used**; scaling won't cut it.
+- Measured amplitude (alpha mass ratio): frame 106 / 006 = **0.9456×**, frame 000 / 006 = **1.0397×**.
+  This is exactly "the overall scaling amplitude is very small, roughly only about 5 percent".
+
+**Role → art family** (`CLICK_ART`, in `Runtime.cs:142` role order):
+
+| Role | OCR | Art family |
+|---|---|---|
+| Arrow | 32512 | `hand_normal` |
+| Help | 32651 | `hand_helpsel` |
+| Hand | 32649 | `hand_link` |
+| Pin | 32671 | `hand_pin` |
+| Person | 32672 | `hand_person` |
+
+### 1.2 ②'s frame sequence and detection
+
+`DragFrame`'s time base is 60fps (`(int)((now - dragAt) * 60 / 1000)`):
+
+```
+while moving:  n<12  → grab_enter_%04d(n)
+               otherwise  n-12 >= 12 → grab_loop_0000 (held throughout)
+                          otherwise → grab_begin_%04d(n-12)
+after release:     n2 = (int)((now-dragEndAt)*60/1000)
+            n2 < 41 → grab_end_%04d(n2)      (683ms boundary: int(683*60/1000)=40)
+            otherwise    → grab_return_%04d(min(11, n2-41))
+```
+
+In `DragVisual:1098`, after release it **still returns true while `now - dragEndAt < 884`** (the claw keeps an
+884ms tail), and only afterwards clears all state. Detection uses
+`SetWinEventHook(10 /*MOVESIZESTART*/, 11 /*MOVESIZEEND*/, …, 0 /*OUTOFCONTEXT*/)`,
+plus two of PRTS's fallbacks:
+
+- **Title-bar window 1500ms suppression** (`ProbeCaption`): `WindowFromPoint` → `GetAncestor(…, GA_ROOT)` →
+  `SendMessageTimeout(root, WM_NCHITTEST=132, …, SMTO_ABORTIFHUNG=2, 100ms)`; if it returns `2` (HTCAPTION), start the timer.
+- **Pure polling fallback** (`PollMove`): only a window-rectangle displacement of `|dx|+|dy| > 3` counts as a real drag.
+
+### 1.3 ③'s frame sequence
+
+```csharp
+elapsed < 500 → "idle_enter_frame_" + Math.Min(29, (int)(elapsed * 60 / 1000)).ToString("D3")
+else          → "idle_frame_" + ((int)((elapsed - 500) * 15 / 1000) % 342).ToString("D4")
+```
+
+In `VisualPhase:388-425`, **only `role == "normal"` goes into idle**; all other roles are returned unchanged.
+This project's "idle" criterion uses the difference between `GetLastInputInfo` and `GetTickCount`, with the
+threshold = `idle_start_ms`.
+
+---
+
+## 2. Landing Points in This Project
+
+### 2.1 New file `src\arkmouse\prtsfx.py` (575 lines, all the logic for the three effects)
+
+| Symbol | Line | Responsibility |
+|---|---|---|
+| Constants block | 42-98 | All annotated with PRTS line numbers (`SPRING_STIFF 520.0` … `IDLE_START_MS 5000`) |
+| `class ClickSpring` | 185 | ①'s spring + frame number; returns `None` at rest (corresponding to PRTS's `return ""`) |
+| `class DragWatch` | 228 | ②'s WinEvent hook, message pump, title-bar suppression, polling fallback, frame sequence |
+| `class FxFrames` | 374 | Builds HCURSORs from `fx.bin` (has its own cache, **deliberately does not enter `Engine.ladder`**) |
+| `class PrtsFx` | 462 | Assembly + `poll()` + `frames_for(now, down)` + `click_px()` |
+
+`frames_for()`'s priority follows `Runtime.cs:863-868`: **drag > idle > click**.
+The return value is `({role: HCURSOR}, stamp)`, where `stamp` looks like `'hand_normal:40'`, used for deduplication.
+
+### 2.2 Changes to `src\arkmouse\cursorwin.py`
+
+| Location | Line | Change |
+|---|---|---|
+| `Engine.set_raw(key, src)` | 861 | New. Bypasses the size ladder and installs an HCURSOR directly into the system slot |
+| `CLICK_STYLES` | 1226 | `prts` → `{1.0, 1.0}` (no scaling, no ladder); `game` → `{0.90, 1.10}` |
+| `fx_options(d)` | 1232 | `o.update(CLICK_STYLES[style])` **unconditionally overrides** the caller's `min_scale`/`max_scale` |
+| `fx_any_on` / `fx_scales` | 1264 / 1269 | Starts as long as any one of the three is on; the prts style always returns `(1.0, 1.0)` (not a single ladder rung is built) |
+| `CursorAnim.describe()` | 1347 | The single source of effect descriptions —— both the GUI and the CLI call only this (see Section 8) |
+| `CursorAnim._emit(now, dt)` | 1430 | Every tick: `prts.poll()` → `frames_for()` → per-role `set_raw`; roles without an fx frame go through the original `apply_at` |
+
+**Deleted**: the entire `idle_offsets()` function, `CursorAnim.idle` / `idle_seq` / `idle_i` / `idle_t`,
+and the three setting keys `idle_anim` / `idle_amp` / `idle_ms` (the idle breathing was replaced by PRTS idle frames).
+
+`_emit` holds `Engine.lock` (`RLock`) throughout, so `set_raw` re-acquiring the lock internally will not deadlock.
+
+### 2.3 Other
+
+| File | Change |
+|---|---|
+| `src\arkmouse\store.py` | `DEFAULTS`(:16) / `FX_KEYS`(:42) swapped to 11 new keys |
+| `src\arkmouse\main.pyw` | Three checkbox labels and initial values, plus status-bar text in three places: `do_apply` / `on_fx` / CLI |
+| `src\arkmouse\paths.py` | `find_fx()`(:47) locates `fx.bin` in the packaged build; `child_env()`(:84) see Section 8 |
+| `build\build_exe.py` | `FX`(:17) + `'--add-data', '%s;.' % FX`(:38) —— **miss this line and the exe has no fx.bin, silently turning all three effects off** |
+| `src\arkmouse\guard.py` | Passes `env=paths.child_env()` when spawning the guard |
+
+---
+
+## 3. Art Assets `src\arkmouse\fx.bin`
+
+- **12 families / 986 frames / 6.97 MB**, format exactly the same as `art.bin` (`AKPT1` container, read directly by `artpack.py`).
+- Hotspots are all uniformly `(28,20)`@96px (→ `(21,15)` at the 72px rung, consistent with `art.bin`'s Arrow).
+- Families: `grab_enter`12 / `grab_begin`12 / `grab_loop`2 / `grab_end`41 / `grab_return`12 /
+  `hand_normal`107 / `hand_helpsel`107 / `hand_link`107 / `hand_pin`107 / `hand_person`107 /
+  `idle_enter_frame`30 / `idle_frame`342.
+- Imported by `tools\import_prts_fx.py` from PRTS's `PRTS-Replica-v8-96x-*.cur` (reusing
+  `build_crystal_pack.raster_of(path, 96)`). Re-running that script regenerates it.
+- **`needs_outline` is `False` for all PRTS families** —— the dark outline is already baked into the art;
+  `frames_with_outline()` changes 0 pixels (don't outline it again).
+
+---
+
+## 4. Parameters (`settings.json`)
+
+| Key | Default | Meaning |
+|---|---|---|
+| `click_anim` | `true` | ① master switch (GUI checkbox) |
+| `click_style` | `'prts'` | `'prts'` = original-frame squash; `'game'` = multiplier scaling (see Appendix A) |
+| `drag_claw` | `true` | ② master switch |
+| `idle_prts` | `true` | ③ master switch |
+| `idle_start_ms` | `5000` | How long to stay idle before ③ begins |
+| `min_scale` / `max_scale` | `0.90` / `1.10` | **Only effective for `click_style='game'`**; under the prts style they are overridden by the preset to 1.0/1.0 |
+| `down_ms` / `up_ms` | `90` / `190` | Same as above, only effective for the game style |
+| `tick_ms` | `8` | Key-state sampling interval (not recommended > 16) |
+| `rung_max` | `25` | Maximum number of size-ladder rungs (only effective for the game style) |
+
+The guard checks the mtime of `settings.json` every 1.5s; changes take effect automatically, no restart needed.
+
+---
+
+## 5. Existing Engine Design (the shared foundation for the three effects)
+
+### 5.1 Why "pre-build the ladder" instead of rasterizing in real time
+
+| Operation | Time per call |
+|---|---|
+| `premul_resize` (115px) | 4.7 ms |
+| `make_hcursor_pm` (premultiplied master → one rung) | **2.2–2.4 ms** |
+| `CopyIcon` + `SetSystemCursor` | **0.2 ms** |
+
+Building 17 roles on the fly each time would take 300–400 ms, far exceeding the 8 ms tick —— the animation
+would be dragged to death by its own construction. So: build the ladder at build time, only swap cursors at
+run time. Multi-frame roles have too many frames (8 animated roles × 72 frames each), so instead they use
+`want()` registration + background-thread fill-in; when `apply_at()` has no rung it returns `None`, the tick
+is skipped, and the previous frame's appearance is retained. The ladder is bounded by an LRU cap of
+`ladder_max = 1400` on handle count.
+
+**The prts style does not build a ladder**: ① dispatches `hand_*` original frames, ② dispatches `grab_*`
+original frames, ③ dispatches `idle_*` original frames, none of them through the size ladder, which is why
+`fx_scales()` returns `(1.0, 1.0)`.
+
+### 5.2 Why polling instead of a global mouse hook
+
+- `WH_MOUSE_LL` needs a message pump, and the system will **unhook** it per `LowLevelHooksTimeout` (once
+  unhooked it is permanently dead, with no notification); if the callback ever misses `WM_LBUTTONUP`, the
+  cursor stays in the shrunken state forever.
+- `GetAsyncKeyState` reads the **physical key state**, so there is no "event" to lose: every tick re-derives
+  from the current state, and "getting stuck" structurally cannot happen. The only cost is the 8ms polling
+  interval, far shorter than the shortest human click duration (about 30ms).
+- The `0x0001` latch bit catches "extremely short clicks that complete between two polls".
+- ⚠ **Exception**: ② must use `SetWinEventHook` (there is no other way to know "the system is dragging a
+  window"), so `DragWatch.pump()` adds a message pump in the animation thread (`PeekMessage`/`DispatchMessage`,
+  ≤64 messages per tick) —— PRTS's host already has a message pump; on our side we have to add our own.
+
+### 5.3 Rasterization equivalence (premultiplied alpha)
+
+`premul_resize` is "premultiply alpha → LANCZOS → unpremultiply". Using a verbatim replica of the old
+implementation as a control, 1188 groups were run (all 543 frames × 4 sizes + each role's first frame +
+the `premul_resize_from` path) —— **0 groups inconsistent, byte-for-byte identical**.
+The premultiplication versions using `Image.alpha_composite` / `ImageChops.multiply` are **not equivalent**
+(visual error 9–15). The selling point of this crystal cursor is sharp edges and clean semi-transparent
+shadows; a visually discernible difference is unacceptable —— so we would rather be a bit slower.
+
+### 5.4 `tier_sizes` and the guard's decision criterion
+
+All ladder pixel sizes are registered in `tier_sizes` so that the guard's criterion
+(`ok_sizes = set(tier_sizes.values())`) recognizes "a size mid-animation" as something it issued itself ——
+otherwise, when the cursor shrinks to 54px the guard would misjudge it as "reset by the system", and then
+`do_apply()` would kill the entire effect.
+
+---
+
+## 6. Verification
+
+### 6.1 Regression scripts (all under `tests\`)
+
+| Script | What it verifies |
+|---|---|
+| `_t_prts.py` | **Offline logic acceptance** (no on-screen): ③'s frame sequence checked directly against PRTS's own `RegressionTests.cs:49-55`; ①'s spring at rest / held / rebound overshoot / 75ms minimum press + amplitude endpoints; ②'s frame sequence at various times + the 884ms tail; parameter assembly |
+| `_t_live.py` | The three effects **on-screen** end-to-end (real window, real key injection, real dragging) |
+| `_t_live2.py` | ①③ on-screen: real key presses + real idle, watching which frames were dispatched |
+| `_t_idle.py` | ③ on-screen: idle triggering |
+| `_t_drag2.py` | ② on-screen: **packaged exe** + real Tk window, real dragging |
+| `_t_exe.py` | ③ packaged: samples only whether the bitmap in the system Arrow slot changes |
+| `_t_probe2.py` | **The decisive probe**: reads the contents of system slot 32512 (`LoadCursorW`→`GetIconInfo`→`GetDIBits`), bypassing interference from the window's own `SetCursor` |
+| `_t_art.py` | Evidence images of ①③'s original frames (extracting the HCURSORs that would actually be dispatched into PNGs to look at) |
+| `_t_desc.py` | Regression over `describe()`'s 16 parameter combinations |
+| `_t_probe.py` | The **false-negative** probe superseded by `_t_probe2.py` (see 6.3) |
+| `_t_key.py` | Minimal diagnostic: whether `keys_state()` can see injected keys |
+
+### 6.2 Conclusions already passed
+
+- `_t_prts.py`: **FAILED: 0**. ③'s frame sequence `idle_frame(0)/(499)/(500)/(567)/(23300)` matches PRTS's
+  regression tests item by item;
+  ① after holding for 200ms, `compression = 1.0529` (clamped to frame 106 after overshoot), and on release it
+  springs to frame 0;
+  ② `0/100ms→grab_enter 0/6`, `200/390ms→grab_begin 0/11`, `400/5000ms→grab_loop 0`,
+  `release 0/600ms→grab_end 0/36`, `683→grab_end 40`, `684/900→grab_return 0/11`, `visual(1584)=False`.
+- On-screen ①: while held, `apply_at` dispatches the size set `[68,69,70,71]`, `compression = 1.0548`;
+  after release it goes through all of `[68,69,70,71,72,73,74,75]` (including 75 = the overshoot rung of
+  1.0397×72 ≈ 74.86).
+- On-screen ②: `set_raw` successfully dispatches `{'Arrow': 78, 'SizeAll': 78}`; the WinEvent callback
+  receives `[(10, hwnd), (11, hwnd)]`; the window really moves by `(7, 5)`; in the packaged
+  `_t_drag2.py`, 69 of 226 samples are claw frames, the bbox goes from the arrow's `(16,10,59,57)` to the
+  claw's `(18,37,59,72)`, and the ink goes `1212 → 941`.
+- On-screen ③: in the packaged `_t_exe.py`, 16 consecutive samples show 3 different bitmaps
+  (ink cycling `1212 → 1210 → 1137`).
+- Packaged frozen-environment simulation: after setting `sys.frozen=True`, `sys._MEIPASS=<tmp>`, both
+  `find_art()` / `find_fx()` hit, and `FxFrames()` loads 12 families.
+
+### 6.3 One lesson: how to prove "what is actually drawn on screen"
+
+**You cannot use `GetCursorInfo().hCursor`** —— as long as the window under the cursor has itself called
+`SetCursor`, what `GetCursorInfo` returns is that window's private cursor, unrelated to the system slot
+changed by `SetSystemCursor` (which is why `_t_probe.py` gave a false negative of "0 pixels different").
+The correct approach is to **read the system slot**: `LoadCursorW(None, MAKEINTRESOURCE(ocr))` →
+`GetIconInfo` → `GetDIBits`, and to compare only the **ink bbox / pixel count**, not just the bitmap size
+(our icons are all on a 72px canvas).
+
+Another note: `SetSystemCursor` "replaces the **contents** of a shared cursor slot", **the handle does not
+change**, so comparing handles is not a valid criterion for "was it swapped or not".
+
+---
+
+## 7. Known Limitations / Residuals
+
+1. **A resident process is required**. The driver thread lives inside the process; if the GUI is closed and
+   the guard is not running, the effects are gone. Normal usage is `"…\ArknightsMouse.exe" --guard` in the
+   `Run` key.
+2. **The claw and idle are fixed to Arrow (+SizeAll)**, unlike PRTS which follows the current role.
+   PRTS dispatches after forcing `text = "normal"` to Arrow (`Runtime.cs:863-866`); we additionally carry
+   `SizeAll`, because when Windows moves a window what is actually displayed is `IDC_SIZEALL`, and only
+   swapping both slots leaves no gap.
+3. **`NWPen` is always 16/17 roles**. The stylus role has no `SetSystemCursor` interface on Windows; this is
+   a pre-existing known limitation, not introduced by this change.
+4. **There is no transition when leaving idle**. PRTS's `idle_exit_*` / `enter_exit_*` are `.ani` files (one
+   file, multiple frames) and were not imported with the art; this project goes straight back to the normal
+   Arrow when leaving idle.
+5. **`down_ms` / `up_ms` and the game style's two curves are not the game's original values** (see Appendix A.2).
+6. **Under the game style, the ladder for multi-frame roles is progressive**: the 8 animated roles have 72
+   frames each; if within the first second or two of a click some rung has not been built yet, `apply_at()`
+   skips that role and keeps the previous frame's appearance (no blocking, no flicker), and it takes effect
+   once the background thread finishes. (The prts style is unaffected —— it builds no ladder.)
+
+---
+
+## 8. Two Pitfalls We Hit (structural; don't repeat them)
+
+### 8.1 There must be only one source of effect descriptions
+
+The root cause of the `'CursorAnim' object has no attribute 'idle'` crash was **not** a missed deletion in
+one place, but that the effect descriptions were **hand-written separately** in the GUI and the CLI
+(`if f.click / if f.idle`). When an effect was deleted, only the effect layer was changed, and the two
+consumers became dangling references. Now everything goes through `CursorAnim.describe()`
+(`cursorwin.py:1347`):
+
+- Describe from `self.opt` (the already-normalized parameters), **not from `self.prts`** —— the latter is
+  assembled inside `Engine._loop`, after `start_fx()` returns, so writing against it would introduce a
+  timing race of "the description is empty right at startup".
+- When `prts.err` is non-empty, it is spliced into the description (e.g. "SetWinEventHook not installed"
+  shows up explicitly rather than failing silently).
+
+### 8.2 A permanent fix for the `_MEI` temp directory that cannot be deleted
+
+On exit, the packaged build popped up `Failed to remove temporary directory: …\_MEI00002b002`, and about 80
+residual directories piled up in `%TEMP%`. The root cause: `main.pyw`'s `do_start_guard()` uses
+`[sys.executable, '--guard']` to launch another copy of itself, and PyInstaller's bootloader uses the
+`_PYI_*` environment variables to make the child process **reuse the parent's `_MEI` directory** —— the
+guard is resident and does not exit, so when the parent exits the directory is still occupied and cannot be
+deleted.
+
+**Rule**: whenever "this program launches another copy of itself", the `Popen` must carry
+`env=paths.child_env()` (`paths.py:84`, which strips all variables with the `_PYI_*` and `_MEI*` prefixes),
+forcing the child to extract its own directory. Measured: the GUI uses `_MEI000053a42` and the guard uses
+`_MEI00000eac2`; after closing the GUI the directory is cleaned up normally, with no dialog box.
+
+---
+
+## 9. Rollback
+
+The three effects **do not depend on each other**; setting each to `false` individually in `settings.json` turns it off:
+
+- Turn off ① → `"click_anim": false`
+- Turn off ② → `"drag_claw": false`
+- Turn off ③ → `"idle_prts": false`
+- To switch back to multiplier scaling (not using PRTS original frames) → `"click_style": "game"`
+  (amplitude ±10%, see Appendix A)
+
+The cursor itself can be restored at any time with the GUI's "restore original cursor" button or `--restore`.
+Source-level rollback: delete `src\arkmouse\prtsfx.py`, delete `fx.bin`, and remove the PRTS branches from
+`cursorwin.py`'s `CLICK_STYLES` / `fx_options` / `_emit` (leaving `Engine.set_raw` in place is harmless).
+
+---
+
+## Appendix A. The Game's Original Multiplier Scaling (`click_style = 'game'`)
+
+The prts style is **the current default**. What follows is an earlier implementation; the code is still
+there, switched via `click_style`. Its multiplier endpoints are **taken directly from the game's machine
+code, not tuned** (this section is the forensic record from back then, kept for reference).
+
+### A.1 Provenance: `PCMouseHandler._PlayAnim` (RVA `0x1483D70`)
+
+The game is installed at `G:\Hypergryph Launcher\games\Arknights\`. Disassembled from `GameAssembly.dll`:
+
+```
+0x181483D85  movaps xmm6, xmm1                    ; t is the xmm1 argument
+0x181483E3C  mulss  xmm6, [rip+0x59bbf60]         ; × 0.5f   (.rdata 0x6E3FDA4 = 00 00 00 3f)
+0x181483E44  movsd  xmm1, [rbx+0x50]              ; read m_cacheScale (Vector3)
+0x181483E49  addss  xmm6, [rip+0x59bc0d3]         ; + 0.75f  (.rdata 0x6E3FF24 = 00 00 40 3f)
+0x181483E90  call   Transform.set_localScale       ; localScale = m_cacheScale * xmm6
+```
+
+→ **`scale(t) = 0.75 + 0.5·t`**, t = 0 → 0.75×, t = 1 → 1.25×, t = 0.5 → 1.00×.
+
+Cross-validation (compile-time field default values in `global-metadata.dat`, three occupying consecutive dataIndex):
+
+| Field | dataIndex | raw | Value |
+|---|---|---|---|
+| `PCMouseHandler.MAX_SIZE` | 200792 | `00 00 a0 3f` | **1.25f** |
+| `PCMouseHandler.MIN_SIZE` | 200796 | `00 00 40 3f` | **0.75f** |
+| `PCMouseMgr.HIDE_MOUSE_DELAY` | 200800 | `cd cc 4c 3e` | 0.2f |
+
+`_PlayAnim` stores the then-current localScale into `m_cacheScale` only on first entry (the `[rbx+0x5c]`
+guard), so it is an **absolute multiplier**; repeated clicks will not shrink it further and further.
+
+**Current parameters**: 0.75×~1.25× is too exaggerated, and it has been converged to **±10% (`0.90` / `1.10`)**.
+
+### A.2 The parts not obtained (honest record, no fabrication)
+
+The **keyframe timings and easing of the two AnimationCurves** `_onBtnDownAnim` / `_onBtnUpAnim` **were not
+obtained**; they are locked inside the **flag = 4 non-standard compressed block** of
+`StreamingAssets\AB\Windows\anon\f7bcd64480c4566f25d65d642f5fba95.bin`. LZ4 / LZMA1 (225 prop groups) /
+LZMA2 / raw-deflate / zlib / bz2 / brotli / LZO have all been empirically ruled out; and it is **not
+UnityCN-encrypted** (the signature is the plaintext `UnityFS\0`, not `#$unity3dchina!@`); this machine has
+no lzham decoder and no C/C++ compiler.
+
+Therefore `down_ms = 90` / `up_ms = 190` and the shapes of the two curves are **configurable parameters
+chosen based on the existing feel, not the game's original values**. Once the real values are obtained, only
+these two keys need to be changed.
+
+### A.3 The game style's state machine
+
+```
+One beat every tick_ms (default 8ms), executed while holding Engine.lock:
+  down, latch = keys_state()          # read physical key state + consume the latch bit; down = down or latch
+  down edge  → state='down', t0=now
+  state=='down' → u = (now-t0)/down_s ; t = curve(ANIM_DOWN_KEYS, u)     # 0.0→0.50
+  release edge    → state='up', t0=now     ; t = curve(ANIM_UP_KEYS, 0)        # 0.0→0.00
+  state=='up'   → u = (now-t0)/up_s
+                  u>=1 → state='idle', t = 0.5
+                  otherwise → t = curve(ANIM_UP_KEYS, u)                      # 0.30→1.00
+  state=='idle' → t = 0.5
+  click_px = nearest_rung(rungs, eng.size, scale_of_t(t))                # snap to the nearest pre-built rung
+```
+
+`ANIM_DOWN_KEYS = ((0.0, 0.50), (1.0, 0.00))`, `ANIM_UP_KEYS = ((0.0, 0.00), (0.30, 1.00), (1.0, 0.50))`.
+
+When the thread exits (via `stop_fx()`), it holds the lock and calls `_reset_to_base()` —— every role goes
+back to the base rung; this is the last guarantee that "a lost release event will not leave it stuck in the
+shrunken state".
