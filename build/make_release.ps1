@@ -9,8 +9,8 @@
         ArknightsMouse.exe    主程序（已内含 art.bin / fx.bin）
         start.bat             双击即开
         QUICKSTART.txt        给不看 markdown 的人（UTF-8 with BOM）
-        README.md             英文完整说明（GitHub 首页）
-        README.zh-CN.md       中文完整说明
+        README.en.md          英文完整说明
+        README.md             中文完整说明
         LICENSE               MIT；指针美术的版权声明另见 README.md
         cursors\              水晶指针的 .cur/.ani（4 档 × 17 角色）与 install.ps1
 
@@ -47,7 +47,7 @@ New-Item -ItemType Directory -Path $stage -Force | Out-Null
 Write-Host "  $stage"
 
 Write-Host '=== 2) 拷主程序与文档 ==='
-$files = @("$AppName.exe", 'start.bat', 'README.md', 'README.zh-CN.md', 'LICENSE')
+$files = @("$AppName.exe", 'start.bat', 'README.md', 'README.en.md', 'LICENSE')
 foreach ($f in $files) {
     if (-not (Test-Path -LiteralPath $f)) { throw "缺少必需文件：$f" }
     Copy-Item -LiteralPath $f -Destination $stage
@@ -134,8 +134,8 @@ $quick = @"
 
 【更多】
 
-  README.md           英文完整说明
-  README.zh-CN.md     中文完整说明
+  README.en.md        英文完整说明
+  README.md           中文完整说明
   cursors\README.md   指针的安装/切换/卸载（命令行方式）
 
 【卸载】
